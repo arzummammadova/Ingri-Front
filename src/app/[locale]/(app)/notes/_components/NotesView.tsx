@@ -209,9 +209,9 @@ export default function NotesView() {
 
       {notes.data && notes.data.pages > 1 && (
         <div className="mt-6 flex items-center justify-center gap-3">
-          <Button size="sm" variant="outline" disabled={page <= 1} onClick={() => setPage((p) => p - 1)}>{t("prev")}</Button>
+          <Button data-sound="back" size="sm" variant="outline" disabled={page <= 1} onClick={() => setPage((p) => p - 1)}>{t("prev")}</Button>
           <span className="text-sm font-semibold">{page} / {notes.data.pages}</span>
-          <Button size="sm" variant="outline" disabled={page >= notes.data.pages} onClick={() => setPage((p) => p + 1)}>{t("next")}</Button>
+          <Button data-sound="next" size="sm" variant="outline" disabled={page >= notes.data.pages} onClick={() => setPage((p) => p + 1)}>{t("next")}</Button>
         </div>
       )}
 

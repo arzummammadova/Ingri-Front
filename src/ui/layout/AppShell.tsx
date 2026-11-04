@@ -17,6 +17,7 @@ import {
   NotebookPen,
   Settings,
   Trophy,
+  Sparkles,
   Tv,
   UserRound,
   Waves,
@@ -52,6 +53,7 @@ const icons = {
   books: BookMarked,
   notes: NotebookPen,
   leaderboard: Trophy,
+  points: Sparkles,
   plan: ListChecks,
   settings: Settings,
   profile: UserRound,
@@ -208,7 +210,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
             </button>
           </div>
           <nav className="grid grid-cols-3 gap-3 px-5 pt-6">
-            {[...mainNav.filter((item) => !bottomNav.some((b) => b.href === item.href)), { key: "flashcards", href: routes.flashcards }].map((item, i) => {
+            {[...mainNav.filter((item) => item.key !== "settings" && !bottomNav.some((b) => b.href === item.href)), { key: "flashcards", href: routes.flashcards }].map((item, i) => {
               const Icon = icons[(item.key in icons ? item.key : "words") as keyof typeof icons];
               return (
                 <Link

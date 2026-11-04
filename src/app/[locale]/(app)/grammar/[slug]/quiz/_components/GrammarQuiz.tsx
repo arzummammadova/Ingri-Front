@@ -41,7 +41,7 @@ export default function GrammarQuiz({ slug }: { slug: string }) {
 
   function next() {
     if (!item) return;
-    playSound("click");
+    playSound("next");
     if (step + 1 >= item.quiz.length) {
       const score = Math.round((correct / item.quiz.length) * 100);
       setDone(true);

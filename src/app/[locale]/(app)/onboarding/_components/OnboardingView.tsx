@@ -179,7 +179,7 @@ export default function OnboardingView() {
             </div>
 
             <div className="flex items-center justify-between gap-3">
-              <Button variant="outline" disabled={step === 0} onClick={() => setStep((s) => Math.max(0, s - 1))}>
+              <Button data-sound="back" variant="outline" disabled={step === 0} onClick={() => setStep((s) => Math.max(0, s - 1))}>
                 <ArrowLeft className="size-4" /> {common("back")}
               </Button>
               {isLast ? (
@@ -187,7 +187,7 @@ export default function OnboardingView() {
                   <Flag className="size-4" /> {t("finish")}
                 </Button>
               ) : (
-                <Button onClick={() => setStep((s) => Math.min(total - 1, s + 1))}>
+                <Button data-sound="next" onClick={() => setStep((s) => Math.min(total - 1, s + 1))}>
                   {common("next")} <ArrowRight className="size-4" />
                 </Button>
               )}

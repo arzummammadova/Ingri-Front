@@ -4,37 +4,43 @@ import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
-import { contentService, progressService } from "@/services/contentService";
+import { QUIZ_PASS, contentService, progressService } from "@/services/contentService";
 import { Button } from "@/components/ui/button";
 import QueryState from "@/ui/components/QueryState";
 import { speak, stopSpeech } from "@/lib/speech";
 import { routes } from "@/config/routes";
-import { useTrackItem } from "@/hooks/useCompletion";
+import { CELEBRATE_EVENT } from "@/hooks/useCompletion";
 import ItemProgress from "@/ui/components/ItemProgress";
 import { playSound } from "@/lib/sound";
 
 export default function ListeningExercise({ slug }: { slug: string }) {
   const t = useTranslations("listening");
   const common = useTranslations("common");
+  const qz = useTranslations("quiz");
   const query = useQuery({ queryKey: ["listening", slug], queryFn: () => contentService.listeningOne(slug) });
   const client = useQueryClient();
   const save = useMutation({
     mutationFn: (score: number) => progressService.listening(slug, score),
-    onSuccess: () => client.invalidateQueries({ queryKey: ["progress"] }),
+    onSuccess: (data, score) => {
+      client.setQueryData(["progress"], data);
+      setResult({ passed: data.passed ?? score >= QUIZ_PASS, awarded: data.awarded || 0 });
+      if (data.awarded) { client.invalidateQueries({ queryKey: ["me"] }); window.dispatchEvent(new CustomEvent(CELEBRATE_EVENT, { detail: { kind: "listening", slug, title: query.data?.title } })); }
+    },
   });
+  const [result, setResult] = useState<null | { passed: boolean; awarded: number }>(null);
+  const [finishedAudio, setFinishedAudio] = useState(false);
   const [open, setOpen] = useState(false);
   const [answers, setAnswers] = useState<Record<number, number>>({});
   const [score, setScore] = useState<number | null>(null);
   const [showText, setShowText] = useState(false);
   const item = query.data;
-  const track = useTrackItem("listening", item?.slug || slug, item?.level, item?.title);
 
   function play() {
     if (!item) return;
     stopSpeech();
     const lines = [...item.lines];
     const step = (index: number) => {
-      if (index >= lines.length) return;
+      if (index >= lines.length) { setFinishedAudio(true); setOpen(true); playSound("complete"); return; }
       const utterance = new SpeechSynthesisUtterance(`${lines[index].speaker}. ${lines[index].en}`);
       utterance.lang = "en-US";
       utterance.rate = 0.92;
@@ -46,13 +52,14 @@ export default function ListeningExercise({ slug }: { slug: string }) {
 
   function submit() {
     if (!item) return;
+    if (Object.keys(answers).length < item.questions.length) return;
     const hits = item.questions.filter((question, index) => answers[index] === question.answer).length;
     const next = Math.round((hits / item.questions.length) * 100);
     setScore(next);
-    playSound(next >= 70 ? "correct" : "wrong");
+    playSound(next >= QUIZ_PASS ? "correct" : "wrong");
     setShowText(true);
+    setResult(null);
     save.mutate(next);
-    if (next >= 70) track.complete();
   }
 
   return (
@@ -67,6 +74,12 @@ export default function ListeningExercise({ slug }: { slug: string }) {
             <Button onClick={play}>{t("play")}</Button>
             <Button variant="outline" onClick={() => setOpen(true)}>{t("unlock")}</Button>
           </div>
+          {finishedAudio && score === null && (
+            <div className="rounded-xl bg-lilac p-4 text-ink" role="status">
+              <p className="font-semibold">{qz("prompt")}</p>
+              <p className="text-sm">{qz("promptText", { pass: QUIZ_PASS })}</p>
+            </div>
+          )}
           {open && (
             <div className="grid gap-4">
               {item.questions.map((question, index) => (
@@ -74,17 +87,35 @@ export default function ListeningExercise({ slug }: { slug: string }) {
                   <legend className="font-semibold">{question.prompt}</legend>
                   <p className="text-sm text-muted-foreground">{question.promptAz}</p>
                   <div className="mt-3 grid gap-2">
-                    {question.options.map((option, optionIndex) => (
-                      <label key={option} className="flex items-center gap-2 rounded-lg bg-muted px-3 py-2">
-                        <input type="radio" name={`q-${index}`} onChange={() => setAnswers({ ...answers, [index]: optionIndex })} />
-                        {option}
-                      </label>
-                    ))}
+                    {question.options.map((option, optionIndex) => {
+                      const checked = score !== null;
+                      const state = !checked ? "bg-muted" : optionIndex === question.answer ? "bg-mint text-ink" : answers[index] === optionIndex ? "bg-peach text-ink" : "bg-muted opacity-70";
+                      return (
+                        <label key={option} className={`flex items-center gap-2 rounded-lg px-3 py-2 ${state}`}>
+                          <input type="radio" name={`q-${index}`} disabled={checked} checked={answers[index] === optionIndex} onChange={() => { setAnswers({ ...answers, [index]: optionIndex }); playSound("click"); }} />
+                          {option}
+                        </label>
+                      );
+                    })}
                   </div>
+                  {score !== null && (
+                    <p className={`mt-2 text-sm font-semibold ${answers[index] === question.answer ? "text-emerald-600" : "text-danger"}`}>
+                      {answers[index] === question.answer ? `✓ ${qz("correct")}` : `✗ ${qz("wrong")} · ${qz("correctAnswer", { answer: question.options[question.answer] })}`}
+                    </p>
+                  )}
                 </fieldset>
               ))}
-              <Button onClick={submit}>{t("submit")}</Button>
-              {score !== null && <p className="text-xl font-bold">{common("score")}: {score}%</p>}
+              <p className="text-xs text-muted-foreground">{qz("required", { pass: QUIZ_PASS })}</p>
+              {score === null ? (
+                <Button onClick={submit} disabled={Object.keys(answers).length < item.questions.length} title={qz("answerAll")}>{t("submit")}</Button>
+              ) : (
+                <div className={`rounded-xl p-4 text-ink ${score >= QUIZ_PASS ? "bg-mint" : "bg-peach"}`}>
+                  <p className="text-xl font-bold">{common("score")}: {score}%</p>
+                  <p className="text-sm">{score >= QUIZ_PASS ? qz("passed") : qz("failed", { pass: QUIZ_PASS })}</p>
+                  {result && result.awarded > 0 && <p className="text-sm font-semibold">{qz("points", { points: result.awarded })}</p>}
+                  <Button size="sm" variant="outline" className="mt-3" onClick={() => { setScore(null); setAnswers({}); setResult(null); setShowText(false); }}>{qz("retry")}</Button>
+                </div>
+              )}
             </div>
           )}
           {showText && (

@@ -26,19 +26,29 @@ export const contentService = {
   lookup: async (q: string) => (await api.get<{ item: import("@/types").Word | null }>(`/words/lookup?q=${encodeURIComponent(q)}`)).data.item,
 };
 
+export type PointsSummary = {
+  total: number;
+  level: { level: number; into: number; next: number; percent: number };
+  rules: { source: string; points: number; note: string; variable?: boolean }[];
+  breakdown: { source: string; points: number; count: number }[];
+  history: { source: string; points: number; ref: string; at: string }[];
+};
+
 export const progressService = {
   get: async () => (await api.get<Progress>("/progress")).data,
+  points: async () => (await api.get<PointsSummary>("/progress/points")).data,
+  flashcards: async (cards: number) => (await api.post<{ awarded: number }>("/progress/flashcards", { cards })).data,
   podcast: (body: { slug: string; seconds: number; completed: boolean }) =>
     api.post<Progress>("/progress/podcast", body).then((r) => r.data),
   quiz: (slug: string, score: number) => api.post<Progress>("/progress/quiz", { slug, score }).then((r) => r.data),
   listening: (slug: string, score: number) =>
-    api.post<Progress>("/progress/listening", { slug, score }).then((r) => r.data),
+    api.post<QuizResult>("/progress/listening", { slug, score }).then((r) => r.data),
   speaking: (slug: string, score: number) =>
     api.post<Progress>("/progress/speaking", { slug, score }).then((r) => r.data),
   word: (slug: string, status: string) => api.post<Progress>("/progress/word", { slug, status }).then((r) => r.data),
   task: (key: string, done: boolean) => api.post<Progress>("/progress/task", { key, done }).then((r) => r.data),
   podcastQuiz: (slug: string, score: number) =>
-    api.post<Progress>("/progress/podcast-quiz", { slug, score }).then((r) => r.data),
+    api.post<QuizResult>("/progress/podcast-quiz", { slug, score }).then((r) => r.data),
   time: (body: { skill: string; seconds: number; level: string }) =>
     api.post<Progress>("/progress/time", body).then((r) => r.data),
   watch: (kind: "video" | "movie", id: string) => api.post<Progress>("/progress/watch", { kind, id }).then((r) => r.data),
@@ -65,3 +75,15 @@ export const profileService = {
   savePlan: async (body: { level: string; dailyMinutes: number; targetLevel: string; targetDate: string }) =>
     (await api.put<{ user: User }>("/profile/plan", body)).data.user,
 };
+
+type CardInput = { word: string; translation: string; example?: string; category?: string };
+export const flashcardService = {
+  list: async () => (await api.get<{ items: import("@/types").UserFlashcard[] }>("/flashcards")).data.items,
+  create: async (body: CardInput) => (await api.post<{ item: import("@/types").UserFlashcard }>("/flashcards", body)).data.item,
+  update: async (id: string, body: Partial<CardInput> & { status?: "new" | "learning" | "known" }) =>
+    (await api.patch<{ item: import("@/types").UserFlashcard }>(`/flashcards/${id}`, body)).data.item,
+  remove: async (id: string) => (await api.delete(`/flashcards/${id}`)).data,
+};
+
+export type QuizResult = Progress & { passed?: boolean; awarded?: number; passMark?: number };
+export const QUIZ_PASS = 60;

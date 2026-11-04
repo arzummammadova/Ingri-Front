@@ -2,7 +2,7 @@
  * Ingri UI sounds — original, synthesized at runtime with the Web Audio API (no audio files).
  * Audio is created lazily and only after the first user gesture (browser autoplay rules).
  */
-export type SoundName = "correct" | "wrong" | "fanfare" | "levelup" | "streak" | "click" | "pop" | "send" | "saved";
+export type SoundName = "next" | "back" | "complete" | "correct" | "wrong" | "fanfare" | "levelup" | "streak" | "click" | "pop" | "send" | "saved";
 
 export const SOUND_EVENT = "ingri:sound";
 const KEY = "ingri:prefs";
@@ -24,28 +24,52 @@ function settings() {
   }
 }
 
-function audio(): AudioContext | null {
-  if (typeof window === "undefined" || !unlocked) return null;
+function ensureCtx(): AudioContext | null {
+  if (typeof window === "undefined") return null;
   if (!ctx) {
     const AC = window.AudioContext || (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
     if (!AC) return null;
-    ctx = new AC();
+    try {
+      ctx = new AC();
+    } catch {
+      return null;
+    }
     master = ctx.createGain();
     master.connect(ctx.destination);
   }
-  if (ctx.state === "suspended") void ctx.resume();
   return ctx;
 }
 
+function audio(): AudioContext | null {
+  if (!unlocked) return null;
+  return ensureCtx();
+}
+
 if (typeof window !== "undefined") {
+  // Keep trying to unlock on every gesture until the context is really running
+  // (iOS Safari only honours touchend/click; Chrome needs pointerdown/keydown).
+  const events = ["pointerdown", "touchend", "click", "keydown"] as const;
   const unlock = () => {
     unlocked = true;
-    audio();
-    window.removeEventListener("pointerdown", unlock);
-    window.removeEventListener("keydown", unlock);
+    const ac = ensureCtx();
+    if (!ac) return;
+    if (ac.state !== "running") {
+      void ac.resume().catch(() => {});
+      // play a silent buffer: required by older iOS to fully unlock output
+      try {
+        const b = ac.createBuffer(1, 1, 22050);
+        const src = ac.createBufferSource();
+        src.buffer = b;
+        src.connect(ac.destination);
+        src.start(0);
+      } catch {}
+    }
+    if (ac.state === "running") events.forEach((e) => window.removeEventListener(e, unlock, true));
   };
-  window.addEventListener("pointerdown", unlock, { once: false });
-  window.addEventListener("keydown", unlock, { once: false });
+  events.forEach((e) => window.addEventListener(e, unlock, { capture: true, passive: true }));
+  document.addEventListener("visibilitychange", () => {
+    if (document.visibilityState === "visible" && ctx && ctx.state !== "running" && unlocked) void ctx.resume().catch(() => {});
+  });
 }
 
 type Note = { f: number; t: number; d: number; type?: OscillatorType; g?: number; to?: number };
@@ -103,7 +127,19 @@ const RECIPES: Record<SoundName, Note[]> = {
     { f: B5, t: 0.27, d: 0.18, type: "triangle", g: 0.22 },
     { f: D6, t: 0.36, d: 0.4, type: "triangle", g: 0.24 },
   ],
-  click: [{ f: 1400, to: 900, t: 0, d: 0.05, type: "triangle", g: 0.14 }],
+  next: [
+    { f: 660, to: 990, t: 0, d: 0.08, type: "triangle", g: 0.22 },
+    { f: 990, t: 0.06, d: 0.1, type: "sine", g: 0.12 },
+  ],
+  back: [
+    { f: 880, to: 560, t: 0, d: 0.09, type: "triangle", g: 0.2 },
+  ],
+  complete: [
+    { f: C5, t: 0, d: 0.14, type: "triangle", g: 0.25 },
+    { f: G5, t: 0.1, d: 0.14, type: "triangle", g: 0.25 },
+    { f: C6, t: 0.2, d: 0.45, type: "triangle", g: 0.28 },
+  ],
+  click: [{ f: 1200, to: 800, t: 0, d: 0.07, type: "triangle", g: 0.22 }],
   pop: [
     { f: 520, to: 1250, t: 0, d: 0.09, type: "sine", g: 0.25 },
     { f: 1250, t: 0.07, d: 0.08, type: "sine", g: 0.08 },
@@ -120,10 +156,17 @@ export function playSound(name: SoundName, opts: { force?: boolean } = {}) {
   const s = settings();
   window.dispatchEvent(new CustomEvent(SOUND_EVENT, { detail: { name, reduced: s.reduced } }));
   if (!s.on && !opts.force) return;
+  unlocked = true; // playSound is always called from a user action
   const ac = audio();
   if (!ac || !master) return;
-  master.gain.setValueAtTime(s.volume * 0.9, ac.currentTime);
-  for (const note of RECIPES[name]) tone(ac, master, note);
+  const play = () => {
+    if (!master) return;
+    const vol = s.volume > 0 ? s.volume : 0.6; // a stored 0 volume with sound ON would be silent forever
+    master.gain.setValueAtTime(vol * 0.9, ac.currentTime);
+    for (const note of RECIPES[name]) tone(ac, master, note);
+  };
+  if (ac.state === "running") play();
+  else void ac.resume().then(play).catch(() => {});
 }
 
 /** React convenience. */

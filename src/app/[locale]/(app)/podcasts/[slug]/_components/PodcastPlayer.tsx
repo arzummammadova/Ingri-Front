@@ -1,11 +1,11 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useTranslations } from "next-intl";
 import { Headphones, Pause, Play, RotateCcw, FileText } from "lucide-react";
 import { Link } from "@/i18n/navigation";
-import { contentService, progressService } from "@/services/contentService";
+import { QUIZ_PASS, contentService, progressService } from "@/services/contentService";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import QueryState from "@/ui/components/QueryState";
@@ -13,7 +13,7 @@ import { speak, stopSpeech } from "@/lib/speech";
 import { useStudyTimer } from "@/hooks/useStudyTimer";
 import { formatClock } from "@/lib/utils";
 import { routes } from "@/config/routes";
-import { useReachedEnd, useTrackItem } from "@/hooks/useCompletion";
+import { CELEBRATE_EVENT, useReachedEnd, useTrackItem } from "@/hooks/useCompletion";
 import ItemProgress from "@/ui/components/ItemProgress";
 import { playSound } from "@/lib/sound";
 
@@ -37,6 +37,10 @@ export default function PodcastPlayer({ slug }: { slug: string }) {
   const [picked, setPicked] = useState<number | null>(null);
   const [correct, setCorrect] = useState(0);
   const [quizDone, setQuizDone] = useState(false);
+  const [result, setResult] = useState<null | { score: number; passed: boolean; awarded: number }>(null);
+  const [promptQuiz, setPromptQuiz] = useState(false);
+  const quizRef = useRef<HTMLElement>(null);
+  const qz = useTranslations("quiz");
   const audioRef = useRef<HTMLAudioElement>(null);
   const lastSave = useRef(0);
   useStudyTimer("listening");
@@ -45,7 +49,14 @@ export default function PodcastPlayer({ slug }: { slug: string }) {
   const hasTranscript = sentences.length > 0 && item?.transcriptAvailable !== false;
   const audioUrl = item?.audioUrl;
   const track = useTrackItem("podcast", item?.slug, item?.level, item?.title);
-  const endRef = useReachedEnd(track.complete, !!item && hasTranscript);
+  // Reaching the end never completes a podcast — it only prompts the quiz.
+  const noQuiz = !!item && !(item.quiz?.length);
+  const askQuiz = useCallback(() => {
+    setPromptQuiz(true);
+    // Podcasts without a quiz complete on reaching the end (server accepts it as a 100% check).
+    if (noQuiz) progressService.podcastQuiz(slug, 100).then((data) => client.setQueryData(["progress"], data)).catch(() => undefined);
+  }, [noQuiz, slug, client]);
+  const endRef = useReachedEnd(askQuiz, !!item && hasTranscript);
   const ttsTotal = (sentences.length || 1) * 8;
   const left = audioUrl ? Math.max((duration || (item?.minutes ?? 0) * 60) - time, 0) : Math.max(ttsTotal - index * 8, 0);
   const quiz = item?.quiz ?? [];
@@ -76,8 +87,9 @@ export default function PodcastPlayer({ slug }: { slug: string }) {
   function onEnded() {
     setPlaying(false);
     save.mutate({ seconds: Math.round(audioRef.current?.duration || 0), completed: true });
-    track.report(100);
-    track.complete();
+    track.report(95);
+    askQuiz();
+    playSound("complete");
   }
   function seek(value: number) {
     const audio = audioRef.current;
@@ -102,7 +114,8 @@ export default function PodcastPlayer({ slug }: { slug: string }) {
       if (cursor >= sentences.length) {
         setPlaying(false);
         save.mutate({ seconds: ttsTotal, completed: true });
-        track.complete();
+        askQuiz();
+        playSound("complete");
         return;
       }
       setIndex(cursor);
@@ -130,18 +143,24 @@ export default function PodcastPlayer({ slug }: { slug: string }) {
     playSound(ok ? "correct" : "wrong");
   }
   function nextQuestion() {
-    playSound("click");
+    playSound("next");
     if (step + 1 >= quiz.length) {
       const score = Math.round((correct / quiz.length) * 100);
       setQuizDone(true);
-      if (score >= 70) { track.complete(); playSound("fanfare"); }
-      progressService.podcastQuiz(slug, score).then((data) => client.setQueryData(["progress"], data)).catch(() => undefined);
+      const passed = score >= QUIZ_PASS;
+      setResult({ score, passed, awarded: 0 });
+      playSound(passed ? "complete" : "wrong");
+      progressService.podcastQuiz(slug, score).then((data) => {
+        client.setQueryData(["progress"], data);
+        setResult({ score, passed: data.passed ?? passed, awarded: data.awarded || 0 });
+        if (data.awarded) { client.invalidateQueries({ queryKey: ["me"] }); window.dispatchEvent(new CustomEvent(CELEBRATE_EVENT, { detail: { kind: "podcast", slug, title: item?.title } })); }
+      }).catch(() => undefined);
       return;
     }
     setStep(step + 1);
     setPicked(null);
   }
-  function resetQuiz() { setStep(0); setPicked(null); setCorrect(0); setQuizDone(false); }
+  function resetQuiz() { setStep(0); setPicked(null); setCorrect(0); setQuizDone(false); setResult(null); }
 
   return (
     <QueryState isLoading={query.isLoading} isError={query.isError} onRetry={() => query.refetch()}>
@@ -253,12 +272,30 @@ export default function PodcastPlayer({ slug }: { slug: string }) {
             </section>
           )}
 
+          {promptQuiz && quiz.length > 0 && !quizDone && (
+            <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl bg-lilac p-4 text-ink" role="status">
+              <div>
+                <p className="font-semibold">{qz("prompt")}</p>
+                <p className="text-sm">{qz("promptText", { pass: QUIZ_PASS })}</p>
+              </div>
+              <Button size="sm" data-sound="next" onClick={() => quizRef.current?.scrollIntoView({ behavior: "smooth", block: "start" })}>{qz("start")}</Button>
+            </div>
+          )}
+
           {question && (
-            <section className="glass rounded-xl p-6">
+            <section ref={quizRef} className="glass scroll-mt-24 rounded-xl p-6">
+              {!quizDone && step === 0 && picked === null && <p className="mb-3 text-xs text-muted-foreground">{qz("required", { pass: QUIZ_PASS })}</p>}
               {quizDone ? (
                 <div className="grid gap-3">
                   <h2 className="font-semibold">{t("quizDone", { correct, total: quiz.length })}</h2>
-                  <Button variant="outline" className="w-fit" onClick={resetQuiz}>{t("quizRetry")}</Button>
+                  {result && (
+                    <div className={`rounded-lg p-3 text-ink ${result.passed ? "bg-mint" : "bg-peach"}`}>
+                      <p className="font-bold">{qz("score", { score: result.score })}</p>
+                      <p className="text-sm">{result.passed ? qz("passed") : qz("failed", { pass: QUIZ_PASS })}</p>
+                      {result.awarded > 0 && <p className="text-sm font-semibold">{qz("points", { points: result.awarded })}</p>}
+                    </div>
+                  )}
+                  <Button variant="outline" className="w-fit" onClick={resetQuiz}>{result && !result.passed ? qz("retry") : t("quizRetry")}</Button>
                 </div>
               ) : (
                 <>
@@ -278,7 +315,8 @@ export default function PodcastPlayer({ slug }: { slug: string }) {
                   {picked !== null && (
                     <div className="mt-3 grid gap-3">
                       <p className="text-sm">
-                        <strong>{picked === question.answer ? common("correct") : common("incorrect")}</strong>
+                        <strong className={picked === question.answer ? "text-emerald-600" : "text-danger"}>{picked === question.answer ? `✓ ${common("correct")}` : `✗ ${common("incorrect")}`}</strong>
+                        {picked !== question.answer && <> · {qz("correctAnswer", { answer: question.options[question.answer] })}</>}
                         {question.explainAz ? ` · ${question.explainAz}` : question.explain ? ` · ${question.explain}` : ""}
                       </p>
                       <Button className="w-fit" onClick={nextQuestion}>{step + 1 >= quiz.length ? t("quizFinish") : t("quizNext")}</Button>

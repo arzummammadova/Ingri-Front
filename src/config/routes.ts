@@ -14,6 +14,7 @@ export const routes = {
   notes: "/notes",
   flashcards: "/words/flashcards",
   leaderboard: "/leaderboard",
+  points: "/points",
   profile: "/profile",
   security: "/profile/security",
   login: "/login",
@@ -36,6 +37,7 @@ export const mainNav = [
   { key: "books", href: routes.books },
   { key: "notes", href: routes.notes },
   { key: "leaderboard", href: routes.leaderboard },
+  { key: "points", href: routes.points },
   { key: "settings", href: routes.settings },
   { key: "profile", href: routes.profile },
 ] as const;

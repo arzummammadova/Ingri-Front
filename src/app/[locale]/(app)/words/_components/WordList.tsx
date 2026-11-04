@@ -30,6 +30,7 @@ export default function WordList() {
   return (
     <ContentList<Word>
       path="/words"
+      completable={false}
       queryKey="words"
       title={t("title")}
       text={t("text")}

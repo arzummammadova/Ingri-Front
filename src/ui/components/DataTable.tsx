@@ -60,8 +60,8 @@ export function Pagination({
         />
         <span className="mx-1 text-xs font-semibold tabular-nums">{t("pageOf", { page, pages })}</span>
         <button type="button" className={btn} disabled={page <= 1} onClick={() => onPage(1)} aria-label={t("first")}><ChevronsLeft className="size-4" /></button>
-        <button type="button" className={btn} disabled={page <= 1} onClick={() => onPage(page - 1)} aria-label={t("prev")}><ChevronLeft className="size-4" /></button>
-        <button type="button" className={btn} disabled={page >= pages} onClick={() => onPage(page + 1)} aria-label={t("next")}><ChevronRight className="size-4" /></button>
+        <button type="button" className={btn} data-sound="back" disabled={page <= 1} onClick={() => onPage(page - 1)} aria-label={t("prev")}><ChevronLeft className="size-4" /></button>
+        <button type="button" className={btn} data-sound="next" disabled={page >= pages} onClick={() => onPage(page + 1)} aria-label={t("next")}><ChevronRight className="size-4" /></button>
         <button type="button" className={btn} disabled={page >= pages} onClick={() => onPage(pages)} aria-label={t("last")}><ChevronsRight className="size-4" /></button>
       </div>
     </div>

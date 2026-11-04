@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { usePathname } from "next/navigation";
 
 export type ListState = {
   page: number;
@@ -15,9 +15,21 @@ export type ListState = {
 
 export const PAGE_SIZES = [12, 24, 50] as const;
 
+type Stored = Partial<Omit<ListState, "filters">> & { filters?: Record<string, string> };
+
+const storeKey = (pathname: string) => `ingri:list:${pathname.replace(/^\/(az|en|ru)(?=\/|$)/, "") || "/"}`;
+function readStored(key: string): Stored {
+  if (typeof window === "undefined") return {};
+  try {
+    return JSON.parse(sessionStorage.getItem(key) || "{}") as Stored;
+  } catch {
+    return {};
+  }
+}
+
 /**
- * List state synced to the URL (?page=2&limit=24&sort=title&order=asc&q=..&level=A1&view=grid),
- * so filters survive reloads, back/forward and are shareable.
+ * List state (page / limit / sort / order / q / view / filters) kept in client state and
+ * persisted per page in sessionStorage — never in the URL query string.
  */
 export function useListParams({
   filterKeys,
@@ -26,48 +38,50 @@ export function useListParams({
   filterKeys: string[];
   defaults: { sort: string; order?: "asc" | "desc"; view?: "table" | "grid"; limit?: number; filters?: Record<string, string> };
 }) {
-  const sp = useSearchParams();
-  const router = useRouter();
   const pathname = usePathname();
+  const key = storeKey(pathname);
+  const [stored, setStored] = useState<Stored>({});
+  const [ready, setReady] = useState(false);
+
+  useEffect(() => {
+    setStored(readStored(key));
+    setReady(true);
+    // Drop any legacy ?page=&sort=… params from old links without a navigation.
+    if (window.location.search) window.history.replaceState(window.history.state, "", window.location.pathname + window.location.hash);
+  }, [key]);
 
   const state: ListState = useMemo(() => {
     const filters: Record<string, string> = {};
-    for (const key of filterKeys) filters[key] = sp.get(key) ?? defaults.filters?.[key] ?? "all";
-    const limit = Number(sp.get("limit")) || defaults.limit || 12;
+    for (const k of filterKeys) filters[k] = stored.filters?.[k] ?? defaults.filters?.[k] ?? "all";
+    const limit = Number(stored.limit) || defaults.limit || 12;
     return {
-      page: Math.max(1, Number(sp.get("page")) || 1),
+      page: Math.max(1, Number(stored.page) || 1),
       limit: Math.min(50, Math.max(1, limit)),
-      sort: sp.get("sort") || defaults.sort,
-      order: (sp.get("order") as "asc" | "desc") || defaults.order || "asc",
-      q: sp.get("q") || "",
-      view: (sp.get("view") as "table" | "grid") || defaults.view || "grid",
+      sort: stored.sort || defaults.sort,
+      order: stored.order || defaults.order || "asc",
+      q: stored.q || "",
+      view: stored.view || defaults.view || "grid",
       filters,
     };
-  }, [sp, filterKeys, defaults.sort, defaults.order, defaults.view, defaults.limit, defaults.filters]);
+  }, [stored, filterKeys, defaults.sort, defaults.order, defaults.view, defaults.limit, defaults.filters]);
 
   const set = useCallback(
     (patch: Partial<Omit<ListState, "filters">> & { filters?: Record<string, string> }, { resetPage = true } = {}) => {
-      const next = new URLSearchParams(sp.toString());
-      const write = (key: string, value: string | number | undefined, fallback?: string | number) => {
-        if (value === undefined) return;
-        if (value === "" || String(value) === String(fallback ?? "")) next.delete(key);
-        else next.set(key, String(value));
-      };
-      write("limit", patch.limit, defaults.limit || 12);
-      write("sort", patch.sort, defaults.sort);
-      write("order", patch.order, defaults.order || "asc");
-      write("q", patch.q, "");
-      write("view", patch.view, defaults.view || "grid");
-      if (patch.filters) for (const [key, value] of Object.entries(patch.filters)) write(key, value, defaults.filters?.[key] ?? "all");
-      if (patch.page !== undefined) write("page", patch.page, 1);
-      else if (resetPage && (patch.q !== undefined || patch.filters || patch.limit || patch.sort || patch.order)) next.delete("page");
-      const qs = next.toString();
-      router.replace(qs ? `${pathname}?${qs}` : pathname, { scroll: false });
+      setStored((cur) => {
+        const next: Stored = { ...cur, ...patch, filters: patch.filters ? { ...cur.filters, ...patch.filters } : cur.filters };
+        if (patch.page === undefined && resetPage && (patch.q !== undefined || patch.filters || patch.limit || patch.sort || patch.order)) next.page = 1;
+        try {
+          sessionStorage.setItem(key, JSON.stringify(next));
+        } catch {
+          /* storage full / disabled */
+        }
+        return next;
+      });
     },
-    [sp, router, pathname, defaults.limit, defaults.sort, defaults.order, defaults.view, defaults.filters],
+    [key],
   );
 
-  return { state, set };
+  return { state, set, ready };
 }
 
 /** Debounced mirror of a value (search box). */

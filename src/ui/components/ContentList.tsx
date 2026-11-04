@@ -34,13 +34,15 @@ export type ContentListProps<T> = {
   headerExtra?: ReactNode;
   /** Default the level filter to the user's active level (like the old "active only" mode). */
   levelDefault?: "active" | "all";
+  /** Show the "Hide completed" toggle (items carry `completed` from the server). */
+  completable?: boolean;
 };
 
 function Inner<T extends { slug: string }>(props: ContentListProps<T>) {
   const t = useTranslations("datatable");
   const { user } = useAuth();
   const activeLevel = user?.activeLevel || user?.level || "";
-  const filterKeys = useMemo(() => ["level", ...(props.facets || []).map((f) => f.key)], [props.facets]);
+  const filterKeys = useMemo(() => ["level", ...(props.facets || []).map((f) => f.key), "hideCompleted"], [props.facets]);
   const defaultFilters = useMemo(
     () => ({ level: props.levelDefault === "all" || !activeLevel ? "all" : activeLevel }),
     [props.levelDefault, activeLevel],
@@ -49,18 +51,19 @@ function Inner<T extends { slug: string }>(props: ContentListProps<T>) {
     () => ({ sort: props.defaultSort, view: props.defaultView || "grid", limit: 12, filters: defaultFilters }),
     [props.defaultSort, props.defaultView, defaultFilters],
   );
-  const { state, set } = useListParams({ filterKeys, defaults });
+  const { state, set, ready } = useListParams({ filterKeys, defaults });
 
   const params = { page: state.page, limit: state.limit, sort: state.sort, order: state.order, q: state.q, ...state.filters };
   const query = useQuery({
     queryKey: [props.queryKey, "page", params],
     queryFn: () => fetchPage<T>(props.path, params),
     placeholderData: keepPreviousData,
-    enabled: !!user || props.levelDefault === "all",
+    enabled: ready && (!!user || props.levelDefault === "all"),
   });
   const data = query.data;
   const facets = data?.facets || {};
 
+  const hide = state.filters.hideCompleted === "1";
   const filters: FilterDef[] = [
     { key: "level", label: t("level"), options: (facets.level?.length ? facets.level : [...LEVELS]).map((l) => ({ value: l, label: l, hint: l === activeLevel ? t("active") : undefined })) },
     ...(props.facets || []).map((f) => ({
@@ -112,6 +115,7 @@ function Inner<T extends { slug: string }>(props: ContentListProps<T>) {
         view={state.view}
         onView={(view) => set({ view }, { resetPage: false })}
         total={data?.total}
+        hideCompleted={user && props.completable !== false ? { value: hide, onChange: (v) => set({ filters: { hideCompleted: v ? "1" : "all" } }) } : undefined}
       />
       {query.isError ? (
         <div className="glass rounded-xl p-6">
@@ -129,7 +133,8 @@ function Inner<T extends { slug: string }>(props: ContentListProps<T>) {
               {data.items.map((item) => (
                 <div key={props.getKey?.(item) || item.slug} className="relative grid">
                   {props.renderCard(item)}
-                  {isNew(item) && <NewBadge />}
+                  {isNew(item) && !isDone(item) && <NewBadge />}
+                  {isDone(item) && <DoneBadge />}
                 </div>
               ))}
             </div>
@@ -153,6 +158,16 @@ function Inner<T extends { slug: string }>(props: ContentListProps<T>) {
         />
       )}
     </div>
+  );
+}
+
+export const isDone = (item: unknown) => (item as { completed?: boolean })?.completed === true;
+function DoneBadge() {
+  const t = useTranslations("datatable");
+  return (
+    <span className="pointer-events-none absolute right-3 top-3 z-[1] inline-flex items-center gap-1 rounded-full border border-border bg-card/90 px-2 py-0.5 text-[10px] font-semibold text-muted-foreground shadow-sm backdrop-blur">
+      ✓ {t("completed")}
+    </span>
   );
 }
 
