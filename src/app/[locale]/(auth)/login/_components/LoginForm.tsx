@@ -60,13 +60,13 @@ export default function LoginForm() {
     >
       <GoogleButton />
       <AuthDivider />
-      <form onSubmit={onSubmit} noValidate className="grid gap-4">
+      <form onSubmit={onSubmit} noValidate className="grid gap-3">
         <AuthField label={t("email")} icon={<Mail />} type="email" name="email" autoComplete="email" placeholder="you@example.com"
           value={email} onChange={(e) => setEmail(e.target.value)} error={emailError} />
         <AuthField label={t("password")} icon={<Lock />} type="password" name="password" autoComplete="current-password" placeholder="••••••••••"
           value={password} onChange={(e) => setPassword(e.target.value)} error={passwordError}
           labelAside={<Link href={routes.forgot} className="text-xs font-semibold text-muted-foreground hover:text-foreground">{t("forgot")}</Link>} />
-        <Button type="submit" disabled={pending} className="mt-1 h-12 rounded-xl text-[0.95rem]">
+        <Button type="submit" disabled={pending} className="mt-1 h-11 rounded-xl text-[0.95rem]">
           {pending && <Loader2 className="size-4 animate-spin" />}
           {pending ? t("signingIn") : t("submitLogin")}
         </Button>

@@ -32,7 +32,7 @@ const AuthField = forwardRef<HTMLInputElement, Props>(function AuthField(
       </div>
       <div
         className={cn(
-          "group flex h-12 items-center gap-2.5 rounded-xl border bg-card px-3.5 shadow-glass transition focus-within:ring-4",
+          "group flex h-11 items-center gap-2.5 rounded-xl border bg-card px-3.5 shadow-glass transition focus-within:ring-4",
           error ? "border-danger/60 focus-within:ring-danger/15" : "border-border focus-within:border-primary/50 focus-within:ring-primary/15",
         )}
       >

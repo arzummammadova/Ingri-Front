@@ -45,7 +45,7 @@ export default function ForgotForm() {
   }
   return (
     <AuthCard title={t("forgotTitle")} text={t("forgotText")} footer={back}>
-      <form onSubmit={onSubmit} noValidate className="grid gap-4">
+      <form onSubmit={onSubmit} noValidate className="grid gap-3">
         <AuthField label={t("email")} icon={<Mail />} type="email" name="email" autoComplete="email" placeholder="you@example.com"
           value={email} onChange={(e) => setEmail(e.target.value)} error={touched && !validEmail(email) ? t("emailInvalid") : ""} />
         <Button type="submit" disabled={pending} className="h-12 rounded-xl">

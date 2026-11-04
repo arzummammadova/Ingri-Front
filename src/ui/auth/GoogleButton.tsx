@@ -24,7 +24,7 @@ export default function GoogleButton() {
       href={`/api/auth/google?locale=${locale}`}
       onClick={() => setPending(true)}
       aria-busy={pending}
-      className="flex h-12 w-full items-center justify-center gap-3 rounded-xl border border-border bg-card text-sm font-semibold text-foreground shadow-glass transition hover:-translate-y-px hover:shadow-soft focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
+      className="flex h-11 w-full items-center justify-center gap-3 rounded-xl border border-border bg-card text-sm font-semibold text-foreground shadow-glass transition hover:-translate-y-px hover:shadow-soft focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
     >
       {pending ? <Loader2 className="size-5 animate-spin" /> : <GoogleG />}
       {t("google")}
@@ -35,7 +35,7 @@ export default function GoogleButton() {
 export function AuthDivider() {
   const t = useTranslations("auth");
   return (
-    <div className="my-5 flex items-center gap-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+    <div className="my-4 flex items-center gap-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
       <span className="h-px flex-1 bg-border" />
       {t("or")}
       <span className="h-px flex-1 bg-border" />

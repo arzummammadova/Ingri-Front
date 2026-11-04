@@ -81,7 +81,8 @@ export default function RegisterForm() {
     >
       <GoogleButton />
       <AuthDivider />
-      <form onSubmit={onSubmit} noValidate className="grid gap-4">
+      <form onSubmit={onSubmit} noValidate className="grid gap-3">
+        <div className="grid gap-3 sm:grid-cols-2 sm:gap-4">
         <AuthField label={t("username")} icon={<AtSign />} name="username" autoComplete="username" placeholder="aysel.22" maxLength={20}
           value={username} onChange={(e) => setUsername(e.target.value.toLowerCase().replace(/[^a-z0-9._]/g, ""))}
           onBlur={() => setTouched((v) => ({ ...v, username: true }))}
@@ -89,11 +90,11 @@ export default function RegisterForm() {
           hint={availability === "free" ? <span className="text-[#23824a]">{t("usernameFree")}</span> : t("usernameHint")} />
         <AuthField label={t("email")} icon={<Mail />} type="email" name="email" autoComplete="email" placeholder="you@example.com"
           value={email} onChange={(e) => setEmail(e.target.value)} onBlur={() => setTouched((v) => ({ ...v, email: true }))} error={emailError} />
+        </div>
         <AuthField label={t("password")} icon={<Lock />} type="password" name="password" autoComplete="new-password" placeholder="••••••••••"
           value={password} onChange={(e) => setPassword(e.target.value)} onBlur={() => setTouched((v) => ({ ...v, password: true }))}
           error={passwordError} hint={<PasswordRules value={password} />} />
-        {passwordError && <PasswordRules value={password} />}
-        <Button type="submit" disabled={pending} className="mt-1 h-12 rounded-xl text-[0.95rem]">
+        <Button type="submit" disabled={pending} className="mt-1 h-11 rounded-xl text-[0.95rem]">
           {pending && <Loader2 className="size-4 animate-spin" />}
           {pending ? t("creating") : t("submitRegister")}
         </Button>

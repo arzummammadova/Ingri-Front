@@ -41,7 +41,7 @@ export default function ResetForm() {
     <AuthCard title={t("resetTitle")} text={t("resetText")}
       footer={<Link href={routes.login} className="font-semibold hover:underline">{t("backToLogin")}</Link>}>
       {!token && <p className="mb-4 rounded-xl bg-peach/70 px-4 py-3 text-sm text-ink">{t("INVALID_TOKEN")}</p>}
-      <form onSubmit={onSubmit} noValidate className="grid gap-4">
+      <form onSubmit={onSubmit} noValidate className="grid gap-3">
         <AuthField label={t("newPassword")} icon={<Lock />} type="password" autoComplete="new-password" value={password}
           onChange={(e) => setPassword(e.target.value)} error={touched && !strongPassword(password) ? t("passwordWeak") : ""}
           hint={<PasswordRules value={password} />} />
