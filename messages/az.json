@@ -321,7 +321,14 @@
     "check": "Təklifi göstər",
     "suggested": "Təklif: {level} ({score}/12)",
     "accept": "Təklifi qəbul et",
-    "save": "Seçimimi saxla"
+    "save": "Seçimimi saxla",
+    "timeLeft": "Qalan vaxt",
+    "timeUp": "Vaxt bitdi ⏰",
+    "timeUpText": "Cavablandırdığın suallara görə səviyyəni hesabladıq.",
+    "stepOf": "Sual {step} / {total}",
+    "answered": "{count}/{total} cavablandı",
+    "finish": "Testi bitir",
+    "resultIntro": "Sənin təxmini səviyyən"
   },
   "videos": {
     "title": "Videolar",
@@ -478,7 +485,8 @@
         "p1": "Gəl kafedə sifariş verməyi məşq edək.",
         "p2": "Mənə özümü təqdim etməyə kömək et."
       }
-    }
+    },
+    "pickQuestion": "Sualınızı seçin və ya özünüz yazın:"
   },
   "datatable": {
     "search": "Axtar",

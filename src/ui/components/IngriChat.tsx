@@ -116,8 +116,10 @@ export default function IngriChat() {
     setLocal((cur) => [...cur, { role: "user", content: message, at: now }, { role: "assistant", content: "", at: now }]);
     const ctrl = new AbortController();
     abortRef.current = ctrl;
+    let gotReply = false;
     try {
       await chatService.stream(message, locale, (e) => {
+        if (e.delta && !gotReply) { gotReply = true; playSound("pop"); }
         if (e.delta) setLocal((cur) => {
           const next = [...cur];
           const last = next[next.length - 1];
@@ -131,7 +133,6 @@ export default function IngriChat() {
     } finally {
       setLocal((cur) => (cur[cur.length - 1]?.role === "assistant" && !cur[cur.length - 1].content ? cur.slice(0, -1) : cur));
       setStreaming(false);
-      playSound("pop");
       client.invalidateQueries({ queryKey: ["chat"] });
     }
   }
@@ -167,31 +168,31 @@ export default function IngriChat() {
           className="ingri-chat-anchor fixed inset-0 z-overlay flex flex-col overflow-hidden bg-background sm:inset-auto sm:bottom-24 sm:left-4 sm:h-[min(42rem,calc(100dvh-8rem))] sm:w-[26rem] sm:rounded-2xl sm:border sm:border-border sm:shadow-soft lg:bottom-6 motion-safe:animate-[ingri-pop_0.2s_ease-out]"
         >
           {/* Header */}
-          <header className="relative flex items-center gap-3 bg-gradient-to-br from-lilac via-aqua to-mint px-4 py-3 text-ink dark:from-lilac/25 dark:via-aqua/15 dark:to-mint/20 dark:text-foreground">
+          <header className="relative flex items-center gap-3 bg-primary px-4 py-3 text-primary-foreground">
             <div className="relative shrink-0">
-              <span className="grid size-11 place-items-center rounded-full bg-white/80 shadow-soft dark:bg-white/10">
-                <Mascot className="size-9" />
+              <span className="grid size-10 place-items-center rounded-full bg-white shadow-sm">
+                <Mascot className="size-8" />
               </span>
-              <span className="absolute -bottom-0.5 -right-0.5 size-3.5 rounded-full border-2 border-white bg-emerald-500 dark:border-background" aria-hidden="true" />
+              <span className="absolute -bottom-0.5 -right-0.5 size-3 rounded-full border-2 border-primary bg-emerald-400" aria-hidden="true" />
             </div>
             <div className="min-w-0 flex-1">
-              <p className="font-brand text-xl font-bold leading-none">Ingri</p>
-              <p className="mt-1 flex items-center gap-1.5 truncate text-xs opacity-80">
+              <p className="font-brand text-lg font-bold leading-none">Ingri</p>
+              <p className="mt-1 truncate text-xs text-primary-foreground/75">
                 {streaming ? t("thinking") : t("online")} · {t("subtitle", { level: user?.activeLevel || "A1" })}
               </p>
             </div>
             {local.length > 0 && (
-              <button type="button" onClick={clear} aria-label={t("clear")} title={t("clear")} className="grid size-9 place-items-center rounded-full hover:bg-white/50 dark:hover:bg-white/10">
+              <button type="button" onClick={clear} aria-label={t("clear")} title={t("clear")} className="grid size-9 place-items-center rounded-full text-primary-foreground/85 transition hover:bg-white/15 hover:text-primary-foreground">
                 <Trash2 className="size-4" />
               </button>
             )}
-            <button type="button" onClick={() => setOpen(false)} aria-label={t("close")} className="grid size-9 place-items-center rounded-full hover:bg-white/50 dark:hover:bg-white/10">
+            <button type="button" onClick={() => setOpen(false)} aria-label={t("close")} className="grid size-9 place-items-center rounded-full text-primary-foreground/85 transition hover:bg-white/15 hover:text-primary-foreground">
               <X className="size-5" />
             </button>
           </header>
 
           {/* Messages */}
-          <div ref={listRef} onScroll={onScroll} className="relative flex-1 overflow-y-auto overscroll-contain px-4 py-4" aria-live="polite">
+          <div ref={listRef} onScroll={onScroll} className="relative flex-1 overflow-y-auto overscroll-contain bg-muted/40 px-3 py-4" aria-live="polite">
             {history.isLoading && (
               <div className="space-y-3">
                 <div className="h-14 w-3/4 animate-pulse rounded-2xl bg-card" />
@@ -200,49 +201,46 @@ export default function IngriChat() {
             )}
 
             {empty && (
-              <div className="flex flex-col items-center pt-2 text-center">
-                <div className="relative">
-                  <span className="absolute inset-0 -z-10 scale-125 rounded-full bg-gradient-to-br from-lilac via-aqua to-mint opacity-60 blur-xl dark:opacity-30" />
-                  <Mascot className="size-20 motion-safe:animate-[ingri-float_4s_ease-in-out_infinite]" />
+              <div className="grid gap-3">
+                <div className="flex items-end gap-2">
+                  <span className="grid size-7 shrink-0 place-items-center rounded-full bg-white shadow-sm ring-1 ring-black/5 dark:bg-card dark:ring-white/10"><Mascot className="size-6" /></span>
+                  <div className="max-w-[85%] rounded-2xl rounded-bl-md bg-white px-3.5 py-2.5 text-sm text-foreground shadow-sm ring-1 ring-black/5 dark:bg-card dark:ring-white/10">
+                    <p className="font-semibold">{t("hello", { name: firstName })}</p>
+                    <p className="mt-1 text-muted-foreground">{t("intro")}</p>
+                    <p className="mt-1 text-right text-[10px] text-muted-foreground">{clock()}</p>
+                  </div>
                 </div>
-                <h3 className="mt-3 font-brand text-2xl font-bold">{t("hello", { name: firstName })}</h3>
-                <p className="mt-1 max-w-xs text-sm text-muted-foreground">{t("intro")}</p>
-                <div className="mt-5 grid w-full gap-3 text-left">
-                  {GROUPS.map(({ key, icon: Icon, tone }) => (
-                    <div key={key} className="rounded-2xl border border-border bg-card p-3 shadow-soft">
-                      <p className="mb-2 flex items-center gap-2 text-xs font-bold uppercase tracking-wide text-muted-foreground">
-                        <span className={cn("grid size-7 place-items-center rounded-lg text-ink dark:text-foreground", tone)}>
-                          <Icon className="size-4" />
-                        </span>
-                        {t(`groups.${key}.title`)}
-                      </p>
-                      <div className="grid gap-1.5">
-                        {(["p1", "p2"] as const).map((p) => (
-                          <button
-                            key={p}
-                            type="button"
-                            onClick={() => ask(t(`groups.${key}.${p}`))}
-                            className="rounded-xl px-3 py-2 text-left text-sm transition hover:bg-muted focus-visible:outline-2 focus-visible:outline-ring"
-                          >
-                            {t(`groups.${key}.${p}`)}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-                  ))}
+                <p className="mt-1 pl-9 text-xs font-semibold text-muted-foreground">{t("pickQuestion")}</p>
+                <div className="grid gap-2 pl-9">
+                  {GROUPS.flatMap(({ key, icon: Icon, tone }) =>
+                    (["p1", "p2"] as const).map((p) => (
+                      <button
+                        key={key + p}
+                        type="button"
+                        onClick={() => ask(t(`groups.${key}.${p}`))}
+                        className="flex items-center gap-2.5 rounded-2xl bg-white px-3 py-2 text-left text-sm text-foreground shadow-sm ring-1 ring-black/5 transition hover:-translate-y-px hover:ring-primary/40 focus-visible:outline-2 focus-visible:outline-ring dark:bg-card dark:ring-white/10"
+                      >
+                        <span className={cn("grid size-7 shrink-0 place-items-center rounded-lg text-ink dark:text-foreground", tone)}><Icon className="size-3.5" /></span>
+                        <span className="min-w-0 flex-1">{t(`groups.${key}.${p}`)}</span>
+                        <Send className="size-3.5 shrink-0 text-muted-foreground" />
+                      </button>
+                    )),
+                  )}
                 </div>
               </div>
             )}
 
-            <div className="space-y-4">
+            <div className="space-y-3">
               {local.map((m, i) => {
                 const time = clock(m.createdAt || m.at);
                 if (m.role === "user") {
                   return (
                     <div key={i} className="flex items-end justify-end gap-2">
                       <div className="max-w-[82%]">
-                        <div className="whitespace-pre-wrap rounded-2xl rounded-br-md bg-primary px-3.5 py-2.5 text-sm text-primary-foreground shadow-soft">{m.content}</div>
-                        <p className="mt-1 text-right text-[10px] text-muted-foreground">{time}</p>
+                        <div className="whitespace-pre-wrap break-words rounded-2xl rounded-br-md bg-primary px-3.5 py-2 text-sm text-primary-foreground shadow-sm">
+                          {m.content}
+                          <p className="mt-1 flex items-center justify-end gap-1 text-[10px] text-primary-foreground/70">{time}<Check className="size-3" /></p>
+                        </div>
                       </div>
                       {user && <img src={avatarSrc(user)} alt="" className="size-7 shrink-0 rounded-full object-cover" />}
                     </div>
@@ -252,9 +250,9 @@ export default function IngriChat() {
                 const live = streaming && i === local.length - 1;
                 return (
                   <div key={i} className="group flex items-end gap-2">
-                    <span className="grid size-7 shrink-0 place-items-center rounded-full bg-card shadow-soft"><Mascot className="size-6" /></span>
+                    <span className="grid size-7 shrink-0 place-items-center rounded-full bg-white shadow-sm ring-1 ring-black/5 dark:bg-card dark:ring-white/10"><Mascot className="size-6" /></span>
                     <div className="min-w-0 max-w-[85%]">
-                      <div className="ingri-md rounded-2xl rounded-bl-md border border-border bg-card px-3.5 py-2.5 text-sm shadow-soft">
+                      <div className="ingri-md rounded-2xl rounded-bl-md bg-white px-3.5 py-2 text-sm text-foreground shadow-sm ring-1 ring-black/5 dark:bg-card dark:ring-white/10">
                         <Markdown text={m.content} />
                         {live && <span className="ml-0.5 inline-block h-4 w-1.5 translate-y-0.5 animate-pulse rounded-sm bg-foreground/60" aria-hidden="true" />}
                       </div>
@@ -269,7 +267,7 @@ export default function IngriChat() {
               {waiting && (
                 <div className="flex items-end gap-2">
                   <span className="grid size-7 shrink-0 place-items-center rounded-full bg-card shadow-soft"><Mascot className="size-6" /></span>
-                  <div className="flex items-center gap-1 rounded-2xl rounded-bl-md border border-border bg-card px-3.5 py-3 shadow-soft" aria-label={t("typing")}>
+                  <div className="flex items-center gap-1 rounded-2xl rounded-bl-md bg-white px-3.5 py-3 shadow-sm ring-1 ring-black/5 dark:bg-card dark:ring-white/10" aria-label={t("typing")}>
                     {[0, 1, 2].map((d) => (
                       <span key={d} className="size-2 rounded-full bg-muted-foreground motion-safe:animate-bounce" style={{ animationDelay: `${d * 0.15}s` }} />
                     ))}
@@ -293,9 +291,9 @@ export default function IngriChat() {
 
           {/* Quick chips once a conversation exists */}
           {!streaming && !empty && (
-            <div className="flex gap-2 overflow-x-auto px-4 pb-2 [scrollbar-width:none]">
+            <div className="flex gap-2 overflow-x-auto border-t border-border/60 bg-background px-3 pb-1 pt-2 [scrollbar-width:none]">
               {GROUPS.map(({ key, icon: Icon }) => (
-                <button key={key} type="button" onClick={() => ask(t(`groups.${key}.p1`))} className="flex shrink-0 items-center gap-1.5 rounded-full border border-border bg-card px-3 py-1.5 text-xs font-semibold hover:bg-muted">
+                <button key={key} type="button" onClick={() => ask(t(`groups.${key}.p1`))} className="flex shrink-0 items-center gap-1.5 rounded-full bg-muted px-3 py-1.5 text-xs font-semibold text-foreground transition hover:bg-primary hover:text-primary-foreground">
                   <Icon className="size-3.5" />
                   {t(`groups.${key}.title`)}
                 </button>
@@ -306,9 +304,9 @@ export default function IngriChat() {
           {/* Sticky composer */}
           <form
             onSubmit={(e) => { e.preventDefault(); ask(input); }}
-            className="sticky bottom-0 border-t border-border bg-background/95 p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] backdrop-blur"
+            className="sticky bottom-0 bg-background p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] backdrop-blur"
           >
-            <div className="flex items-end gap-2 rounded-2xl border border-border bg-card p-1.5 pl-3 focus-within:ring-2 focus-within:ring-ring">
+            <div className="flex items-end gap-2 rounded-full border border-border bg-card p-1.5 pl-4 focus-within:border-primary/50 focus-within:ring-4 focus-within:ring-primary/15">
               <textarea
                 ref={inputRef}
                 value={input}
@@ -324,7 +322,7 @@ export default function IngriChat() {
                 type="submit"
                 disabled={!input.trim() || streaming}
                 aria-label={t("send")}
-                className="grid size-9 shrink-0 place-items-center rounded-xl bg-primary text-primary-foreground transition hover:scale-105 disabled:opacity-40 disabled:hover:scale-100"
+                className="grid size-9 shrink-0 place-items-center rounded-full bg-primary text-primary-foreground transition hover:scale-105 disabled:opacity-40 disabled:hover:scale-100"
               >
                 <Send className="size-4" />
               </button>

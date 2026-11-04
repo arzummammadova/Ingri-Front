@@ -82,7 +82,7 @@ export default function RegisterForm() {
       <GoogleButton />
       <AuthDivider />
       <form onSubmit={onSubmit} noValidate className="grid gap-3">
-        <div className="grid gap-3 sm:grid-cols-2 sm:gap-4">
+        <div className="grid items-start gap-3 sm:grid-cols-2 sm:gap-4">
         <AuthField label={t("username")} icon={<AtSign />} name="username" autoComplete="username" placeholder="aysel.22" maxLength={20}
           value={username} onChange={(e) => setUsername(e.target.value.toLowerCase().replace(/[^a-z0-9._]/g, ""))}
           onBlur={() => setTouched((v) => ({ ...v, username: true }))}

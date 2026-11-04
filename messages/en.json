@@ -321,7 +321,14 @@
     "check": "Show the suggestion",
     "suggested": "Suggestion: {level} ({score}/12)",
     "accept": "Accept the suggestion",
-    "save": "Save my choice"
+    "save": "Save my choice",
+    "timeLeft": "Time left",
+    "timeUp": "Time is up ⏰",
+    "timeUpText": "We calculated your level from the questions you answered.",
+    "stepOf": "Question {step} of {total}",
+    "answered": "{count}/{total} answered",
+    "finish": "Finish test",
+    "resultIntro": "Your estimated level"
   },
   "videos": {
     "title": "Videos",
@@ -478,7 +485,8 @@
         "p1": "Let's practise ordering at a café.",
         "p2": "Help me introduce myself."
       }
-    }
+    },
+    "pickQuestion": "Pick a question or type your own:"
   },
   "datatable": {
     "search": "Search",

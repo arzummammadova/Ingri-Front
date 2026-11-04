@@ -135,7 +135,7 @@ export default function DashboardView() {
             </div>
             <Button
               variant="outline"
-              className="mt-4 bg-paper"
+              className="mt-4 border-transparent bg-white text-ink shadow-sm hover:bg-white/80 dark:bg-white dark:text-ink dark:hover:bg-white/85"
               onClick={async () => {
                 await navigator.clipboard.writeText(`${window.location.origin}/${locale}${routes.register}`);
                 setCopied(true);
@@ -189,7 +189,7 @@ export default function DashboardView() {
                     type="button"
                     aria-pressed={task.done}
                     onClick={() => progressService.task(task.key, !task.done).then(() => progress.refetch())}
-                    className={`size-5 rounded-full border ${task.done ? "bg-mint" : "bg-card"}`}
+                    className={`size-5 rounded-full ${task.done ? "bg-mint" : "bg-muted ring-1 ring-inset ring-black/10 dark:ring-white/15"}`}
                   />
                 </li>
               ))}
