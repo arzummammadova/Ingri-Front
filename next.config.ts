@@ -5,6 +5,7 @@ const withNextIntl = createNextIntlPlugin("./src/i18n/request.ts");
 
 const nextConfig: NextConfig = {
   devIndicators: false,
+  distDir: process.env.NEXT_DIST_DIR || ".next",
   async headers() {
     return [
       {
@@ -19,7 +20,7 @@ const nextConfig: NextConfig = {
     ];
   },
   async rewrites() {
-    const target = process.env.BACKEND_URL || "http://127.0.0.1:4871";
+    const target = process.env.BACKEND_URL || (process.env.VERCEL ? "https://ingri-back.onrender.com" : "http://127.0.0.1:4871");
     return [{ source: "/api/:path*", destination: `${target}/api/:path*` }];
   },
 };
