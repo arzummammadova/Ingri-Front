@@ -30,7 +30,9 @@
     "notes": "Notes",
     "expandSidebar": "Expand menu",
     "collapseSidebar": "Collapse menu",
-    "close": "Close"
+    "close": "Close",
+    "more": "More",
+    "theme": "Theme"
   },
   "common": {
     "loading": "Loading…",
@@ -63,7 +65,8 @@
     "streak": "Streak",
     "close": "Close",
     "cancel": "Cancel",
-    "saveError": "Couldn't save. Please try again."
+    "saveError": "Couldn't save. Please try again.",
+    "new": "New"
   },
   "auth": {
     "loginTitle": "Welcome back",
@@ -136,7 +139,12 @@
     "perkListen": "Short podcasts with real audio",
     "perkGrammar": "Clear grammar and mini quizzes",
     "perkSpeak": "Speaking practice with instant scores",
-    "perkAi": "Ingri — your personal AI tutor"
+    "perkAi": "Ingri — your personal AI tutor",
+    "gender": "Gender",
+    "genderFemale": "Female",
+    "genderMale": "Male",
+    "genderSkip": "Prefer not",
+    "optional": "optional"
   },
   "dashboard": {
     "hello": "Hello, {name}",
@@ -486,7 +494,8 @@
         "p2": "Help me introduce myself."
       }
     },
-    "pickQuestion": "Pick a question or type your own:"
+    "pickQuestion": "Pick a question or type your own:",
+    "fabHint": "Got a question?"
   },
   "datatable": {
     "search": "Search",
@@ -532,7 +541,8 @@
       "translation": "Translation",
       "status": "Status",
       "actions": "Actions"
-    }
+    },
+    "newest": "Newest"
   },
   "streak": {
     "tooltip": "{count}-day streak · Longest: {longest} days"
@@ -564,5 +574,15 @@
     "soundHint": "Correct/wrong answers, streak and chat sounds.",
     "volume": "Volume",
     "test": "Test"
+  },
+  "flash": {
+    "flipHint": "Tap to flip",
+    "speak": "Pronounce"
+  },
+  "exitGuard": {
+    "title": "You haven't finished this yet. Do you want to leave?",
+    "text": "Your progress is saved, but it won't count as completed.",
+    "stay": "Stay",
+    "leave": "Leave"
   }
 }

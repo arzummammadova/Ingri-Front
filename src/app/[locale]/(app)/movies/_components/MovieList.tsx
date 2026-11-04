@@ -18,10 +18,10 @@ export default function MovieList() {
       queryKey="movies"
       title={t("title")}
       text={t("text")}
-      defaultSort="order"
+      defaultSort="newest"
       defaultView="grid"
       hrefFor={(item) => `${routes.movies}/${item.slug}`}
-      sortOptions={[{ value: "order", label: d("recommended") }, { value: "title", label: d("col.title") }, { value: "level", label: d("level") }, { value: "year", label: d("col.year") }]}
+      sortOptions={[{ value: "newest", label: d("newest") }, { value: "order", label: d("recommended") }, { value: "title", label: d("col.title") }, { value: "level", label: d("level") }, { value: "year", label: d("col.year") }]}
       gridClassName="grid gap-4 sm:grid-cols-2 xl:grid-cols-3"
       columns={[
         { id: "title", header: d("col.title"), sortKey: "title", primary: true, cell: (m) => m.title },

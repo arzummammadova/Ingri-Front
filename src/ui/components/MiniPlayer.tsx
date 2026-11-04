@@ -53,7 +53,7 @@ export default function MiniPlayerProvider({ children }: { children: React.React
   const docked = !!slot && !!rect;
   const style: React.CSSProperties = docked
     ? { position: "fixed", top: rect!.top, left: rect!.left, width: rect!.width, height: rect!.height, zIndex: 30 }
-    : { position: "fixed", right: 16, bottom: 16, width: "min(340px, calc(100vw - 32px))", zIndex: 60 };
+    : { position: "fixed", right: "var(--mini-right)", bottom: "var(--mini-bottom)", width: "min(340px, calc(100vw - 32px))", zIndex: 60 };
 
   return (
     <MiniPlayerContext.Provider value={{ play, setSlot, fullscreen }}>

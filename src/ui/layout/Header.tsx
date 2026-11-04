@@ -18,7 +18,8 @@ export default function Header({ compact = false }: { compact?: boolean }) {
         <div className="ml-auto flex min-w-0 shrink-0 items-center gap-1.5 sm:gap-2">
           {user && !compact && <StreakBadge />}
           {!compact && <LevelSwitcher />}
-          <LanguageSwitcher />
+          {/* Language lives in the mobile "more" menu; header shows it from md up. */}
+          <div className="hidden md:block"><LanguageSwitcher /></div>
           <ThemeToggle />
         </div>
       </div>

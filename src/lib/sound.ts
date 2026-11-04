@@ -11,6 +11,10 @@ let ctx: AudioContext | null = null;
 let master: GainNode | null = null;
 let unlocked = false;
 
+export function soundSettings() {
+  return settings();
+}
+
 function settings() {
   try {
     const p = JSON.parse(localStorage.getItem(KEY) || "{}");

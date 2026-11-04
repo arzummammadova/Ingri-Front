@@ -1,6 +1,7 @@
 "use client";
 
-import { FormEvent } from "react";
+import { FormEvent, useEffect, useState } from "react";
+import GenderPicker, { type Gender } from "@/ui/components/GenderPicker";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
@@ -25,6 +26,8 @@ export default function ProfileView() {
   const auth = useTranslations("auth");
   const { user } = useAuth();
   const client = useQueryClient();
+  const [gender, setGender] = useState<Gender>((user?.gender as Gender) || "");
+  useEffect(() => setGender((user?.gender as Gender) || ""), [user?.gender]);
   const update = useMutation({
     mutationFn: profileService.update,
     onSuccess: (next) => {
@@ -59,6 +62,7 @@ export default function ProfileView() {
       bio: String(data.get("bio")),
       city: String(data.get("city")),
       level: String(data.get("level")),
+      gender,
       learningGoals: goals.filter((goal) => data.getAll("goals").includes(goal)),
     });
   }
@@ -85,6 +89,7 @@ export default function ProfileView() {
             </select>
           </label>
         </div>
+        <GenderPicker value={gender} onChange={setGender} />
         <fieldset>
           <legend className="text-sm font-semibold">{t("goals")}</legend>
           <div className="mt-2 flex flex-wrap gap-3">

@@ -19,15 +19,23 @@ export function formatClock(seconds: number) {
   return `${m}:${s}`;
 }
 
+export function defaultAvatar(gender?: string) {
+  if (gender === "female") return "/avatars/default-female.svg";
+  if (gender === "male") return "/avatars/default-male.svg";
+  return "/avatars/default-neutral.svg";
+}
+
+/** One avatar everywhere: uploaded image, then chosen preset, then a gender-based default. */
 export function avatarSrc(person?: {
   avatarType?: string;
   avatarPreset?: string;
   avatarUrl?: string;
+  gender?: string;
 } | null) {
-  if (!person) return "/avatars/avatar-aysel.jpg";
+  if (!person) return defaultAvatar();
   if (person.avatarType === "upload" && person.avatarUrl) return person.avatarUrl;
-  if (person.avatarPreset) return `/avatars/avatar-${person.avatarPreset}.jpg`;
-  return "/avatars/avatar-aysel.jpg";
+  if (person.avatarType === "preset" && person.avatarPreset) return `/avatars/avatar-${person.avatarPreset}.jpg`;
+  return defaultAvatar(person.gender);
 }
 
 export function scorePhrase(target: string, heard: string) {

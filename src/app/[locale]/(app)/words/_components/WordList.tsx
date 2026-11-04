@@ -33,10 +33,10 @@ export default function WordList() {
       queryKey="words"
       title={t("title")}
       text={t("text")}
-      defaultSort="rank"
+      defaultSort="newest"
       hrefFor={(word) => `${routes.words}/${word.slug}`}
       facets={[{ key: "category", label: d("category"), format: cat }]}
-      sortOptions={[{ value: "rank", label: d("recommended") }, { value: "en", label: d("col.word") }, { value: "level", label: d("level") }, { value: "category", label: d("category") }]}
+      sortOptions={[{ value: "newest", label: d("newest") }, { value: "rank", label: d("recommended") }, { value: "en", label: d("col.word") }, { value: "level", label: d("level") }, { value: "category", label: d("category") }]}
       headerExtra={
         <div className="flex flex-wrap items-center gap-2">
           <a className="rounded-full bg-peach px-4 py-2 text-sm font-semibold text-ink" href="/api/words/export.pdf">{t("pdf")}</a>

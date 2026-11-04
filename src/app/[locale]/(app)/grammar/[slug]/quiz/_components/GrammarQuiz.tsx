@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useExitGuard } from "@/ui/components/ExitGuard";
 import { useLocale, useTranslations } from "next-intl";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link } from "@/i18n/navigation";
@@ -29,6 +30,7 @@ export default function GrammarQuiz({ slug }: { slug: string }) {
   const item = query.data;
   const track = useTrackItem("grammar", item?.slug || slug, item?.level, item?.title);
   const question = item?.quiz[step];
+  useExitGuard(!done && (step > 0 || picked !== null));
 
   function choose(option: number) {
     if (!question || picked !== null) return;

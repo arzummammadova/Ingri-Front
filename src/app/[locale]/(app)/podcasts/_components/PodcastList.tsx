@@ -25,10 +25,10 @@ export default function PodcastList() {
       queryKey="podcasts"
       title={t("title")}
       text={t("text")}
-      defaultSort="order"
+      defaultSort="newest"
       levelDefault="all"
       hrefFor={(item) => `${routes.podcasts}/${item.slug}`}
-      sortOptions={[{ value: "order", label: d("recommended") }, { value: "title", label: d("col.title") }, { value: "level", label: d("level") }, { value: "minutes", label: d("col.minutes") }]}
+      sortOptions={[{ value: "newest", label: d("newest") }, { value: "order", label: d("recommended") }, { value: "title", label: d("col.title") }, { value: "level", label: d("level") }, { value: "minutes", label: d("col.minutes") }]}
       columns={[
         { id: "title", header: d("col.title"), sortKey: "title", primary: true, cell: (p) => <span>{p.title}<span className="block text-xs font-normal text-muted-foreground">{locale === "az" ? p.titleAz : p.summary}</span></span> },
         { id: "level", header: d("level"), sortKey: "level", cell: (p) => <Badge variant={tone[p.accent]}>{p.level}</Badge> },

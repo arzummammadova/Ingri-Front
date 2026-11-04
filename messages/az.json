@@ -30,7 +30,9 @@
     "notes": "Qeydlər",
     "expandSidebar": "Menyunu aç",
     "collapseSidebar": "Menyunu yığ",
-    "close": "Bağla"
+    "close": "Bağla",
+    "more": "Daha çox",
+    "theme": "Mövzu"
   },
   "common": {
     "loading": "Yüklənir…",
@@ -63,7 +65,8 @@
     "streak": "Seriya",
     "close": "Bağla",
     "cancel": "Ləğv et",
-    "saveError": "Saxlamaq alınmadı. Yenidən cəhd et."
+    "saveError": "Saxlamaq alınmadı. Yenidən cəhd et.",
+    "new": "Yeni"
   },
   "auth": {
     "loginTitle": "Yenidən xoş gəldin",
@@ -136,7 +139,12 @@
     "perkListen": "Real səsli qısa podkastlar",
     "perkGrammar": "Aydın qrammatika və mini testlər",
     "perkSpeak": "Danışıq məşqi və anında xal",
-    "perkAi": "Ingri — şəxsi AI müəllimin"
+    "perkAi": "Ingri — şəxsi AI müəllimin",
+    "gender": "Cins",
+    "genderFemale": "Qadın",
+    "genderMale": "Kişi",
+    "genderSkip": "Göstərmə",
+    "optional": "istəyə görə"
   },
   "dashboard": {
     "hello": "Salam, {name}",
@@ -486,7 +494,8 @@
         "p2": "Mənə özümü təqdim etməyə kömək et."
       }
     },
-    "pickQuestion": "Sualınızı seçin və ya özünüz yazın:"
+    "pickQuestion": "Sualınızı seçin və ya özünüz yazın:",
+    "fabHint": "Sualın var?"
   },
   "datatable": {
     "search": "Axtar",
@@ -532,7 +541,8 @@
       "translation": "Tərcümə",
       "status": "Status",
       "actions": "Əməliyyatlar"
-    }
+    },
+    "newest": "Ən yenilər"
   },
   "streak": {
     "tooltip": "{count} gün ardıcıl · Ən uzun seriya: {longest} gün"
@@ -564,5 +574,15 @@
     "soundHint": "Düzgün/səhv cavab, seriya və çat səsləri.",
     "volume": "Səs səviyyəsi",
     "test": "Yoxla"
+  },
+  "flash": {
+    "flipHint": "Çevirmək üçün toxun",
+    "speak": "Tələffüz et"
+  },
+  "exitGuard": {
+    "title": "Bunu hələ bitirmədin. Çıxmaq istəyirsən?",
+    "text": "İrəliləyişin yadda saxlanılacaq, amma tamamlanmış sayılmayacaq.",
+    "stay": "Qal",
+    "leave": "Çıx"
   }
 }

@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { useExitGuard } from "@/ui/components/ExitGuard";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useTranslations } from "next-intl";
 import { ArrowLeft, ArrowRight, Check, Clock, Flag, Sparkles } from "lucide-react";
@@ -38,6 +39,7 @@ export default function OnboardingView() {
   const [suggested, setSuggested] = useState<string | null>(null);
   const [score, setScore] = useState(0);
   const [picked, setPicked] = useState<string[]>(["A1"]);
+  useExitGuard(answers.length > 0 && !suggested);
   const finishedRef = useRef(false);
 
   const scoreMut = useMutation({

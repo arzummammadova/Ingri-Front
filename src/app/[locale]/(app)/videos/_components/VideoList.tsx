@@ -20,11 +20,11 @@ export default function VideoList() {
       queryKey="videos"
       title={t("title")}
       text={t("text")}
-      defaultSort="order"
+      defaultSort="newest"
       defaultView="grid"
       hrefFor={(item) => `${routes.videos}/${item.slug}`}
       facets={[{ key: "skill", label: d("skill") }, { key: "topic", label: d("topic") }]}
-      sortOptions={[{ value: "order", label: d("recommended") }, { value: "title", label: d("col.title") }, { value: "level", label: d("level") }, { value: "minutes", label: d("col.minutes") }]}
+      sortOptions={[{ value: "newest", label: d("newest") }, { value: "order", label: d("recommended") }, { value: "title", label: d("col.title") }, { value: "level", label: d("level") }, { value: "minutes", label: d("col.minutes") }]}
       gridClassName="grid gap-4 sm:grid-cols-2 xl:grid-cols-3"
       columns={[
         { id: "title", header: d("col.title"), sortKey: "title", primary: true, cell: (v) => v.title },

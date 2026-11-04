@@ -1,7 +1,7 @@
 "use client";
 
 import { NotebookPen, X } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
 import { Link, usePathname } from "@/i18n/navigation";
 import { routes } from "@/config/routes";
@@ -29,6 +29,33 @@ export default function NotesPanel() {
   const [color, setColor] = useState<NoteColor>("lilac");
   const recent = useNotes({ limit: 5 });
   const { create } = useNoteMutations();
+  const [tabHidden, setTabHidden] = useState(false);
+  const [dragX, setDragX] = useState(0);
+  const drag = useRef<{ x: number; moved: boolean } | null>(null);
+  useEffect(() => setTabHidden(localStorage.getItem("ingri:notesTabHidden") === "1"), []);
+  const hideTab = (hidden: boolean) => {
+    setTabHidden(hidden);
+    localStorage.setItem("ingri:notesTabHidden", hidden ? "1" : "0");
+  };
+  const onPointerDown = (e: React.PointerEvent<HTMLButtonElement>) => {
+    drag.current = { x: e.clientX, moved: false };
+    e.currentTarget.setPointerCapture(e.pointerId);
+  };
+  const onPointerMove = (e: React.PointerEvent) => {
+    if (!drag.current) return;
+    const dx = e.clientX - drag.current.x;
+    if (Math.abs(dx) > 6) drag.current.moved = true;
+    setDragX(Math.max(0, dx));
+  };
+  const onPointerUp = (e: React.PointerEvent) => {
+    const state = drag.current;
+    drag.current = null;
+    const dx = state ? e.clientX - state.x : 0;
+    setDragX(0);
+    if (!state) return;
+    if (dx > 36) hideTab(true);
+    else if (!state.moved) setOpen(true);
+  };
 
   useEffect(() => {
     if (!open) return;
@@ -50,15 +77,30 @@ export default function NotesPanel() {
 
   return (
     <>
-      <button
-        type="button"
-        onClick={() => setOpen(true)}
-        aria-label={t("open")}
-        className="fixed right-0 top-1/2 z-nav flex -translate-y-1/2 items-center gap-2 rounded-l-lg bg-sidebar px-2 py-3 text-sidebar-foreground shadow-soft transition duration-200 ease-fluid hover:pr-3 [writing-mode:vertical-rl]"
-      >
-        <NotebookPen className="size-4 rotate-90" />
-        <span className="text-xs font-bold tracking-wide">{t("tab")}</span>
-      </button>
+      {tabHidden ? (
+        <button
+          type="button"
+          onClick={() => hideTab(false)}
+          aria-label={t("open")}
+          title={t("open")}
+          className="fixed right-0 top-1/2 z-nav h-14 w-2.5 -translate-y-1/2 rounded-l-full bg-sidebar/70 shadow-soft transition-all duration-200 hover:w-4 hover:bg-sidebar"
+        />
+      ) : (
+        <button
+          type="button"
+          onPointerDown={onPointerDown}
+          onPointerMove={onPointerMove}
+          onPointerUp={onPointerUp}
+          onPointerCancel={() => { drag.current = null; setDragX(0); }}
+          onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setOpen(true); } }}
+          aria-label={t("open")}
+          style={{ transform: `translate(${dragX}px, -50%)`, opacity: 1 - Math.min(dragX / 80, 0.6), touchAction: "pan-y" }}
+          className={cn("fixed right-0 top-1/2 z-nav flex cursor-grab items-center gap-2 rounded-l-lg bg-sidebar px-2 py-3 text-sidebar-foreground shadow-soft ease-fluid hover:pr-3 active:cursor-grabbing [writing-mode:vertical-rl]", dragX === 0 && "transition-all duration-200")}
+        >
+          <NotebookPen className="size-4 rotate-90" />
+          <span className="text-xs font-bold tracking-wide">{t("tab")}</span>
+        </button>
+      )}
 
       <div
         className={cn("fixed inset-0 z-overlay bg-ink/40 transition-opacity", open ? "opacity-100" : "pointer-events-none opacity-0")}

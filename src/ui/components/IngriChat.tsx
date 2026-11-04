@@ -63,14 +63,38 @@ export default function IngriChat() {
   const [error, setError] = useState("");
   const [atBottom, setAtBottom] = useState(true);
   const [bounce, setBounce] = useState(0);
+  const [peek, setPeek] = useState(false);
+  const openRef = useRef(false);
+  openRef.current = open;
+  // Occasionally expand the pill by itself: ~4s after load, then every ~50s (desktop); mobile just bounces.
+  useEffect(() => {
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    const desktop = window.matchMedia("(min-width: 1024px)");
+    let hide: number | undefined;
+    const run = () => {
+      if (openRef.current || document.visibilityState !== "visible") return;
+      if (!desktop.matches) return setBounce((n) => n + 1);
+      setPeek(true);
+      hide = window.setTimeout(() => setPeek(false), 4000);
+    };
+    const first = window.setTimeout(run, 4000);
+    const every = window.setInterval(run, 45000 + Math.round(Math.random() * 15000));
+    return () => { clearTimeout(first); clearInterval(every); clearTimeout(hide); };
+  }, []);
   const abortRef = useRef<AbortController | null>(null);
   const listRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const history = useQuery({ queryKey: ["chat"], queryFn: chatService.history, enabled: open && !!user });
 
+  const streamingRef = useRef(false);
+  streamingRef.current = streaming;
+  // Sync from server only when fresh history arrives, never when a stream ends
+  // (that used to overwrite just-sent messages with stale history).
   useEffect(() => {
-    if (history.data && !streaming) setLocal(history.data.items);
-  }, [history.data, streaming]);
+    if (!history.data || streamingRef.current) return;
+    const items = history.data.items;
+    setLocal((cur) => (items.length >= cur.filter((m) => m.content).length ? items : cur));
+  }, [history.data]);
 
   const scrollDown = useCallback((smooth = true) => {
     listRef.current?.scrollTo({ top: listRef.current.scrollHeight, behavior: smooth ? "smooth" : "auto" });
@@ -155,17 +179,30 @@ export default function IngriChat() {
         onClick={() => setOpen((v) => !v)}
         aria-label={t("open")}
         aria-expanded={open}
-        className={cn("ingri-fab ingri-chat-anchor fixed bottom-24 left-4 z-nav grid size-16 place-items-center lg:bottom-6", open && "max-sm:hidden")}
+        data-peek={peek && !open ? "true" : undefined}
+        className={cn(
+          "group ingri-chat-anchor fixed bottom-24 right-4 z-nav flex h-16 items-center rounded-full p-0 transition-all duration-300 ease-fluid lg:bottom-6",
+          "lg:hover:bg-white lg:data-[peek=true]:bg-white lg:hover:p-1.5 lg:data-[peek=true]:p-1.5 lg:hover:pr-5 lg:data-[peek=true]:pr-5 lg:hover:shadow-[0_10px_30px_-8px_rgba(30,20,60,0.28)] lg:data-[peek=true]:shadow-[0_10px_30px_-8px_rgba(30,20,60,0.28)] lg:hover:ring-1 lg:data-[peek=true]:ring-1 lg:hover:ring-black/5 lg:data-[peek=true]:ring-black/5",
+          "dark:lg:hover:bg-card dark:lg:data-[peek=true]:bg-card dark:lg:hover:ring-white/10 dark:lg:data-[peek=true]:ring-white/10",
+          open && "max-sm:hidden",
+        )}
       >
-        <span className="ingri-blob absolute inset-0" aria-hidden="true" />
-        <Mascot key={bounce} className={cn("relative size-11 drop-shadow", bounce > 0 && "ingri-mascot-bounce")} />
+        <span className="ingri-fab relative grid size-16 shrink-0 place-items-center transition-all duration-300 lg:group-hover:size-[3.25rem] lg:group-data-[peek=true]:size-[3.25rem]">
+          <span className="ingri-blob absolute inset-0 transition-opacity duration-300 lg:group-hover:opacity-0 lg:group-data-[peek=true]:opacity-0" aria-hidden="true" />
+          <span className="absolute inset-0 rounded-full bg-lilac/60 opacity-0 transition-opacity duration-300 lg:group-hover:opacity-100 lg:group-data-[peek=true]:opacity-100 dark:bg-lilac/25" aria-hidden="true" />
+          <Mascot key={bounce} className={cn("relative size-11 drop-shadow transition-all duration-300 lg:group-hover:size-9 lg:group-data-[peek=true]:size-9", bounce > 0 && "ingri-mascot-bounce")} />
+        </span>
+        <span className="hidden max-w-0 overflow-hidden whitespace-nowrap text-left opacity-0 transition-all duration-300 ease-fluid lg:block lg:group-hover:ml-3 lg:group-data-[peek=true]:ml-3 lg:group-hover:max-w-44 lg:group-data-[peek=true]:max-w-44 lg:group-hover:opacity-100 lg:group-data-[peek=true]:opacity-100">
+          <span className="block text-sm font-bold leading-tight text-ink dark:text-foreground">Ingri AI</span>
+          <span className="block text-xs leading-tight text-muted-foreground">{t("fabHint")}</span>
+        </span>
       </button>
 
       {open && (
         <section
           role="dialog"
           aria-label="Ingri"
-          className="ingri-chat-anchor fixed inset-0 z-overlay flex flex-col overflow-hidden bg-background sm:inset-auto sm:bottom-24 sm:left-4 sm:h-[min(42rem,calc(100dvh-8rem))] sm:w-[26rem] sm:rounded-2xl sm:border sm:border-border sm:shadow-soft lg:bottom-6 motion-safe:animate-[ingri-pop_0.2s_ease-out]"
+          className="ingri-chat-anchor fixed inset-0 z-overlay flex flex-col overflow-hidden bg-background sm:inset-auto sm:bottom-24 sm:right-4 sm:h-[min(42rem,calc(100dvh-8rem))] sm:w-[26rem] sm:rounded-2xl sm:border sm:border-border sm:shadow-soft lg:bottom-6 motion-safe:animate-[ingri-pop_0.2s_ease-out]"
         >
           {/* Header */}
           <header className="relative flex items-center gap-3 bg-primary px-4 py-3 text-primary-foreground">
@@ -213,7 +250,7 @@ export default function IngriChat() {
                 <p className="mt-1 pl-9 text-xs font-semibold text-muted-foreground">{t("pickQuestion")}</p>
                 <div className="grid gap-2 pl-9">
                   {GROUPS.flatMap(({ key, icon: Icon, tone }) =>
-                    (["p1", "p2"] as const).map((p) => (
+                    (["p1"] as const).map((p) => (
                       <button
                         key={key + p}
                         type="button"

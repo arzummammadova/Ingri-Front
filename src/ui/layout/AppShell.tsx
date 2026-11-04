@@ -8,7 +8,7 @@ import {
   Home,
   Languages,
   ListChecks,
-  Menu,
+  MoreHorizontal,
   PanelLeftClose,
   PanelLeftOpen,
   X,
@@ -36,6 +36,9 @@ import { Tooltip } from "@/ui/components/Popover";
 import { useSidebar } from "@/hooks/useSidebar";
 import PreferencesSync from "@/ui/components/PreferencesSync";
 import SoundBridge from "@/ui/components/SoundBridge";
+import LanguageSwitcher from "@/ui/components/LanguageSwitcher";
+import ThemeToggle from "@/ui/components/ThemeToggle";
+import { ExitGuardHost } from "@/ui/components/ExitGuard";
 
 const icons = {
   overview: Home,
@@ -125,6 +128,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
     <div className="min-h-screen">
       <PreferencesSync />
       <SoundBridge />
+      <ExitGuardHost />
       <aside
         data-collapsed={collapsed || undefined}
         className="ingri-sidebar fixed inset-y-4 left-4 z-header hidden flex-col overflow-y-auto overflow-x-hidden rounded-xl bg-sidebar p-3 text-sidebar-foreground shadow-soft lg:flex"
@@ -183,49 +187,58 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
             </Link>
           );
         })}
-        <button type="button" onClick={() => setMenuOpen(true)} aria-expanded={menuOpen} className="flex flex-col items-center gap-1 py-2 text-[10px] font-semibold">
-          <Menu className="size-4" />
-          {t("menu")}
+        <button type="button" onClick={() => setMenuOpen(true)} aria-expanded={menuOpen} aria-label={t("more")} className={cn("flex flex-col items-center gap-1 rounded-lg py-2 text-[10px] font-semibold", menuOpen && "bg-lilac text-ink")}>
+          <MoreHorizontal className="size-5" />
+          {t("more")}
         </button>
       </nav>
-      {/* Mobile off-canvas drawer */}
-      <div
-        className={cn("fixed inset-0 z-overlay lg:hidden", menuOpen ? "pointer-events-auto" : "pointer-events-none")}
-        aria-hidden={!menuOpen}
-      >
-        <div
-          className={cn("absolute inset-0 bg-ink/40 transition-opacity duration-300", menuOpen ? "opacity-100" : "opacity-0")}
-          onClick={() => setMenuOpen(false)}
-        />
-        <aside
-          role="dialog"
-          aria-modal="true"
-          aria-label={t("mainNav")}
-          className={cn(
-            "absolute inset-y-0 left-0 flex w-[min(20rem,86vw)] flex-col overflow-y-auto bg-sidebar p-4 text-sidebar-foreground shadow-soft transition-transform duration-300 ease-fluid",
-            menuOpen ? "translate-x-0" : "-translate-x-full",
-          )}
-        >
-          <div className="flex items-center justify-between gap-2">
-            <div className="flex-1"><SidebarBrand /></div>
-            <button type="button" onClick={() => setMenuOpen(false)} aria-label={t("close")} className="grid size-10 place-items-center rounded-full hover:bg-paper/10">
+      {/* Mobile full-screen "more" menu (items in the bottom nav are not repeated) */}
+      {menuOpen && (
+        <div role="dialog" aria-modal="true" aria-label={t("mainNav")} className="fixed inset-0 z-overlay flex flex-col overflow-y-auto bg-background/95 backdrop-blur-xl lg:hidden menu-item-in" style={{ paddingTop: "env(safe-area-inset-top)" }}>
+          <div className="flex items-center justify-between px-5 pt-4">
+            <div className="flex items-center gap-3">
+              {user && <img src={avatarSrc(user)} alt="" className="size-11 rounded-full object-cover ring-2 ring-lilac" />}
+              <div className="min-w-0">
+                <p className="truncate font-semibold">{user?.name || "Ingri"}</p>
+                {user && <p className="text-xs text-muted-foreground">{user.level}</p>}
+              </div>
+            </div>
+            <button type="button" onClick={() => setMenuOpen(false)} aria-label={t("close")} className="grid size-11 place-items-center rounded-full bg-muted transition hover:bg-lilac">
               <X className="size-5" />
             </button>
           </div>
-          <nav className="mt-6 flex flex-1 flex-col gap-1">
-            {mainNav.map((item) => (
-              <NavLink key={item.href} href={item.href} label={t(item.key)} active={active(item.href)} icon={item.key} onNavigate={() => setMenuOpen(false)} />
-            ))}
-            <NavLink href={routes.flashcards} label={t("flashcards")} active={active(routes.flashcards)} icon="words" onNavigate={() => setMenuOpen(false)} />
+          <nav className="grid grid-cols-3 gap-3 px-5 pt-6">
+            {[...mainNav.filter((item) => !bottomNav.some((b) => b.href === item.href)), { key: "flashcards", href: routes.flashcards }].map((item, i) => {
+              const Icon = icons[(item.key in icons ? item.key : "words") as keyof typeof icons];
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  onClick={() => setMenuOpen(false)}
+                  style={{ animationDelay: `${40 + i * 25}ms` }}
+                  className={cn(
+                    "menu-item-in flex aspect-square flex-col items-center justify-center gap-2 rounded-2xl border border-border/60 bg-card p-2 text-center text-xs font-semibold shadow-sm transition active:scale-95",
+                    active(item.href) && "border-transparent bg-lilac text-ink",
+                  )}
+                >
+                  <span className="grid size-10 place-items-center rounded-xl bg-muted/70"><Icon className="size-5" /></span>
+                  <span className="line-clamp-2">{t(item.key as "overview")}</span>
+                </Link>
+              );
+            })}
           </nav>
+          <div className="mx-5 mt-6 grid gap-2 rounded-2xl border border-border/60 bg-card p-3">
+            <div className="flex items-center justify-between gap-3 px-1"><span className="text-sm font-semibold">{t("language")}</span><LanguageSwitcher /></div>
+            <div className="flex items-center justify-between gap-3 px-1"><span className="text-sm font-semibold">{t("theme")}</span><ThemeToggle /></div>
+          </div>
           {user && (
-            <button type="button" onClick={() => logout.mutate()} className="mt-4 flex items-center gap-3 rounded-lg bg-paper/10 p-3 text-sm font-semibold">
+            <button type="button" onClick={() => { setMenuOpen(false); logout.mutate(); }} className="mx-5 mb-28 mt-4 flex items-center justify-center gap-2 rounded-2xl bg-muted p-3 text-sm font-semibold text-danger">
               <LogOut className="size-4" />
               {t("logout")}
             </button>
           )}
-        </aside>
-      </div>
+        </div>
+      )}
     </div>
   );
 }

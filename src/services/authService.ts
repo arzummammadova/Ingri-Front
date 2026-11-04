@@ -6,7 +6,7 @@ export const authService = {
   me: async () => (await api.get<{ user: User }>("/auth/me")).data.user,
   login: async (body: { email: string; password: string }) =>
     (await api.post<{ user: User }>("/auth/login", body)).data.user,
-  register: (body: { username: string; email: string; password: string; locale: string; level?: string }) =>
+  register: (body: { username: string; email: string; password: string; locale: string; level?: string; gender?: string }) =>
     api.post("/auth/register", body),
   usernameAvailable: async (username: string) =>
     (await api.get<{ available: boolean }>("/auth/username-available", { params: { username } })).data.available,

@@ -13,6 +13,7 @@ export type User = {
   avatarType: "preset" | "upload" | "none";
   avatarPreset: string;
   avatarUrl: string;
+  gender?: "female" | "male" | "";
   role: "user" | "admin";
   isVerified: boolean;
   xp: number;
@@ -36,6 +37,7 @@ export type Peer = {
   avatarType: User["avatarType"];
   avatarPreset: string;
   avatarUrl: string;
+  gender?: "female" | "male" | "";
   xp: number;
   streak: number;
   totalMinutes: number;

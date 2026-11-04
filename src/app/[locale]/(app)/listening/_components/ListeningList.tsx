@@ -21,10 +21,10 @@ export default function ListeningList() {
       queryKey="listening"
       title={t("title")}
       text={t("text")}
-      defaultSort="order"
+      defaultSort="newest"
       levelDefault="all"
       hrefFor={(item) => `${routes.listening}/${item.slug}`}
-      sortOptions={[{ value: "order", label: d("recommended") }, { value: "title", label: d("col.title") }, { value: "level", label: d("level") }, { value: "minutes", label: d("col.minutes") }]}
+      sortOptions={[{ value: "newest", label: d("newest") }, { value: "order", label: d("recommended") }, { value: "title", label: d("col.title") }, { value: "level", label: d("level") }, { value: "minutes", label: d("col.minutes") }]}
       columns={[
         { id: "title", header: d("col.title"), sortKey: "title", primary: true, cell: (l) => <span>{l.title}<span className="block text-xs font-normal text-muted-foreground">{l.titleAz}</span></span> },
         { id: "level", header: d("level"), sortKey: "level", cell: (l) => <Badge variant={l.accent}>{l.level}</Badge> },

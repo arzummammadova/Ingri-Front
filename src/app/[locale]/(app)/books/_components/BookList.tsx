@@ -18,10 +18,10 @@ export default function BookList() {
       queryKey="books"
       title={t("title")}
       text={t("text")}
-      defaultSort="order"
+      defaultSort="newest"
       defaultView="grid"
       hrefFor={(item) => `${routes.books}/${item.slug}`}
-      sortOptions={[{ value: "order", label: d("recommended") }, { value: "title", label: d("col.title") }, { value: "author", label: d("col.author") }, { value: "level", label: d("level") }, { value: "year", label: d("col.year") }]}
+      sortOptions={[{ value: "newest", label: d("newest") }, { value: "order", label: d("recommended") }, { value: "title", label: d("col.title") }, { value: "author", label: d("col.author") }, { value: "level", label: d("level") }, { value: "year", label: d("col.year") }]}
       columns={[
         { id: "title", header: d("col.title"), sortKey: "title", primary: true, cell: (b) => b.title },
         { id: "author", header: d("col.author"), sortKey: "author", cell: (b) => b.author },

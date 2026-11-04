@@ -126,7 +126,12 @@ function Inner<T extends { slug: string }>(props: ContentListProps<T>) {
             </div>
           ) : data && data.items.length ? (
             <div className={`${props.gridClassName || "grid gap-4 md:grid-cols-2"} transition-opacity ${query.isFetching ? "opacity-70" : ""}`}>
-              {data.items.map((item) => <div key={props.getKey?.(item) || item.slug} className="contents">{props.renderCard(item)}</div>)}
+              {data.items.map((item) => (
+                <div key={props.getKey?.(item) || item.slug} className="relative grid">
+                  {props.renderCard(item)}
+                  {isNew(item) && <NewBadge />}
+                </div>
+              ))}
             </div>
           ) : (
             <div className="glass rounded-xl">{empty}</div>
@@ -148,6 +153,22 @@ function Inner<T extends { slug: string }>(props: ContentListProps<T>) {
         />
       )}
     </div>
+  );
+}
+
+const NEW_MS = 14 * 24 * 60 * 60 * 1000;
+export function isNew(item: unknown) {
+  const raw = (item as { publishedAt?: string; createdAt?: string })?.publishedAt || (item as { createdAt?: string })?.createdAt;
+  const at = raw ? Date.parse(raw) : NaN;
+  return Number.isFinite(at) && Date.now() - at < NEW_MS;
+}
+
+export function NewBadge({ className = "" }: { className?: string }) {
+  const t = useTranslations("common");
+  return (
+    <span className={`pointer-events-none absolute right-3 top-3 z-[1] rounded-full bg-[#ff5d8f] px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-white shadow-sm ${className}`}>
+      {t("new")}
+    </span>
   );
 }
 

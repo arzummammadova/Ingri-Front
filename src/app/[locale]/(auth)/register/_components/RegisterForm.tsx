@@ -11,6 +11,7 @@ import { AuthCard } from "@/ui/layout/AuthShell";
 import AuthField, { PasswordRules, USERNAME_RE, strongPassword, validEmail } from "@/ui/auth/AuthField";
 import GoogleButton, { AuthDivider } from "@/ui/auth/GoogleButton";
 import { errorCode, notify } from "@/lib/toast";
+import GenderPicker, { type Gender } from "@/ui/components/GenderPicker";
 
 type Availability = "idle" | "checking" | "free" | "taken";
 
@@ -20,6 +21,7 @@ export default function RegisterForm() {
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [gender, setGender] = useState<Gender>("");
   const [touched, setTouched] = useState<Record<string, boolean>>({});
   const [availability, setAvailability] = useState<Availability>("idle");
   const [pending, setPending] = useState(false);
@@ -48,7 +50,7 @@ export default function RegisterForm() {
     setPending(true);
     try {
       await authService.csrf();
-      await authService.register({ username, email: email.trim(), password, locale });
+      await authService.register({ username, email: email.trim(), password, locale, ...(gender ? { gender } : {}) });
       setSentTo(email.trim());
       notify.success(t("registered"), t("CHECK_EMAIL"));
     } catch (err) {
@@ -94,6 +96,7 @@ export default function RegisterForm() {
         <AuthField label={t("password")} icon={<Lock />} type="password" name="password" autoComplete="new-password" placeholder="••••••••••"
           value={password} onChange={(e) => setPassword(e.target.value)} onBlur={() => setTouched((v) => ({ ...v, password: true }))}
           error={passwordError} hint={<PasswordRules value={password} />} />
+        <GenderPicker value={gender} onChange={setGender} />
         <Button type="submit" disabled={pending} className="mt-1 h-11 rounded-xl text-[0.95rem]">
           {pending && <Loader2 className="size-4 animate-spin" />}
           {pending ? t("creating") : t("submitRegister")}

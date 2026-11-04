@@ -19,7 +19,12 @@ export const chatService = {
         headers: { "Content-Type": "application/json", "X-CSRF-Token": readCookie("csrfToken") },
         body: JSON.stringify({ message, locale }),
       });
+    if (!readCookie("csrfToken")) await api.get("/auth/csrf").catch(() => undefined);
     let res = await send();
+    if (res.status === 403) {
+      await api.get("/auth/csrf").catch(() => undefined);
+      res = await send();
+    }
     if (res.status === 401) {
       await api.post("/auth/refresh");
       res = await send();
@@ -32,18 +37,22 @@ export const chatService = {
     for (;;) {
       const { value, done } = await reader.read();
       if (done) break;
-      buffer += decoder.decode(value, { stream: true });
+      buffer += decoder.decode(value, { stream: true }).replace(/\r\n/g, "\n");
       let idx;
       while ((idx = buffer.indexOf("\n\n")) >= 0) {
         const chunk = buffer.slice(0, idx);
         buffer = buffer.slice(idx + 2);
-        const line = chunk.split("\n").find((l) => l.startsWith("data:"));
-        if (!line) continue;
-        try {
-          onEvent(JSON.parse(line.slice(5).trim()));
-        } catch {
-          /* ignore */
-        }
+        emit(chunk);
+      }
+    }
+    if (buffer.trim()) emit(buffer);
+    function emit(chunk: string) {
+      const data = chunk.split("\n").filter((l) => l.startsWith("data:")).map((l) => l.slice(5).trim()).join("");
+      if (!data) return;
+      try {
+        onEvent(JSON.parse(data));
+      } catch {
+        /* ignore partial */
       }
     }
   },

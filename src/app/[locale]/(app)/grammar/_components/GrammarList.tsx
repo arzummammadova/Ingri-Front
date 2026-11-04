@@ -23,9 +23,9 @@ export default function GrammarList() {
       queryKey="grammar"
       title={t("title")}
       text={t("text")}
-      defaultSort="order"
+      defaultSort="newest"
       hrefFor={(item) => `${routes.grammar}/${item.slug}`}
-      sortOptions={[{ value: "order", label: d("recommended") }, { value: "title", label: d("col.title") }, { value: "level", label: d("level") }, { value: "minutes", label: d("col.minutes") }]}
+      sortOptions={[{ value: "newest", label: d("newest") }, { value: "order", label: d("recommended") }, { value: "title", label: d("col.title") }, { value: "level", label: d("level") }, { value: "minutes", label: d("col.minutes") }]}
       columns={[
         { id: "title", header: d("col.title"), sortKey: "title", primary: true, cell: (g) => <span>{g.title}<span className="block text-xs font-normal text-muted-foreground">{g.titleAz}</span></span> },
         { id: "level", header: d("level"), sortKey: "level", cell: (g) => <Badge variant={g.accent}>{g.level}</Badge> },

@@ -22,11 +22,11 @@ export default function SpeakingList() {
       queryKey="speaking"
       title={t("title")}
       text={t("text")}
-      defaultSort="order"
+      defaultSort="newest"
       levelDefault="all"
       hrefFor={(item) => `${routes.speaking}/${item.slug}`}
       facets={[{ key: "category", label: d("category") }]}
-      sortOptions={[{ value: "order", label: d("recommended") }, { value: "en", label: d("col.phrase") }, { value: "level", label: d("level") }, { value: "category", label: d("category") }]}
+      sortOptions={[{ value: "newest", label: d("newest") }, { value: "order", label: d("recommended") }, { value: "en", label: d("col.phrase") }, { value: "level", label: d("level") }, { value: "category", label: d("category") }]}
       columns={[
         { id: "en", header: d("col.phrase"), sortKey: "en", primary: true, cell: (s) => <span>{s.en}<span className="block text-xs font-normal text-muted-foreground">{s.az}</span></span> },
         { id: "category", header: d("category"), sortKey: "category", cell: (s) => (locale === "az" ? s.categoryAz : s.category) },

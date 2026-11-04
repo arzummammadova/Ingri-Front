@@ -1,6 +1,7 @@
 "use client";
 
-import { useCallback, useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { useExitGuard } from "@/ui/components/ExitGuard";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { progressService } from "@/services/contentService";
 import { useProgress } from "@/hooks/useProgress";
@@ -21,6 +22,9 @@ export function useTrackItem(kind: ItemKind, slug: string | undefined, level?: s
   const sent = useRef(0);
   const done = useRef(false);
   done.current = done.current || !!existing?.completed;
+  const [started, setStarted] = useState(false);
+  const [finishedNow, setFinishedNow] = useState(false);
+  useExitGuard(started && !finishedNow && !existing?.completed);
   sent.current = Math.max(sent.current, existing?.percent || 0);
 
   const mutation = useMutation({
@@ -40,6 +44,8 @@ export function useTrackItem(kind: ItemKind, slug: string | undefined, level?: s
       if (!slug || done.current) return;
       const pct = Math.min(100, Math.max(0, Math.round(percent)));
       const finished = completed || pct >= 90;
+      if (finished) setFinishedNow(true);
+      else if (pct > 0) setStarted(true);
       if (!finished && pct < sent.current + 10) return;
       sent.current = pct;
       if (finished) done.current = true;
@@ -48,7 +54,9 @@ export function useTrackItem(kind: ItemKind, slug: string | undefined, level?: s
     [slug, mutate],
   );
   const complete = useCallback(() => report(100, true), [report]);
-  return { report, complete, item: existing, isPending: mutation.isPending };
+  /** Mark the item as in progress (e.g. first quiz answer) so leaving asks for confirmation. */
+  const start = useCallback(() => setStarted(true), []);
+  return { report, complete, start, item: existing, isPending: mutation.isPending };
 }
 
 /** Track a YouTube video by its id; falls back to active watch time when duration is unknown. */
