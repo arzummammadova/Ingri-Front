@@ -20,7 +20,9 @@ export type User = {
   totalMinutes: number;
   dailyMinutes: { date: string; minutes: number }[];
   city: string;
-  locale: "az" | "en";
+  locale: "az" | "en" | "ru";
+  username?: string;
+  authProvider?: "local" | "google";
   lastActiveDate: string;
   longestStreak?: number;
   timezone?: string;

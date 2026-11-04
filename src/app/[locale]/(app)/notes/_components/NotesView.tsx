@@ -62,7 +62,7 @@ export default function NotesView() {
     if (ids.length === 1) m.remove.mutate(ids[0], after);
     else m.bulkRemove.mutate(ids, after);
   };
-  const fmt = (d: string) => new Date(d).toLocaleDateString(locale === "az" ? "az-AZ" : "en-GB", { day: "numeric", month: "short", year: "numeric" });
+  const fmt = (d: string) => new Date(d).toLocaleDateString(locale === "az" ? "az-AZ" : locale === "ru" ? "ru-RU" : "en-GB", { day: "numeric", month: "short", year: "numeric" });
 
   return (
     <Container>

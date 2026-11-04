@@ -46,7 +46,7 @@ function Inner<T extends { slug: string }>(props: ContentListProps<T>) {
     [props.levelDefault, activeLevel],
   );
   const defaults = useMemo(
-    () => ({ sort: props.defaultSort, view: props.defaultView || "table", limit: 12, filters: defaultFilters }),
+    () => ({ sort: props.defaultSort, view: props.defaultView || "grid", limit: 12, filters: defaultFilters }),
     [props.defaultSort, props.defaultView, defaultFilters],
   );
   const { state, set } = useListParams({ filterKeys, defaults });

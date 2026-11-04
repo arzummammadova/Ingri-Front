@@ -1,70 +1,76 @@
 "use client";
 
-import { FormEvent, useState } from "react";
+import { FormEvent, useEffect, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
+import { Loader2, Lock, Mail } from "lucide-react";
 import { Link, useRouter } from "@/i18n/navigation";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { authService } from "@/services/authService";
 import { routes } from "@/config/routes";
-
-function codeOf(error: unknown) {
-  return (error as { response?: { data?: { code?: string } } })?.response?.data?.code || "SERVER_ERROR";
-}
+import { AuthCard } from "@/ui/layout/AuthShell";
+import AuthField, { validEmail } from "@/ui/auth/AuthField";
+import GoogleButton, { AuthDivider } from "@/ui/auth/GoogleButton";
+import { errorCode, notify } from "@/lib/toast";
 
 export default function LoginForm() {
   const t = useTranslations("auth");
   const router = useRouter();
   const params = useSearchParams();
-  const [error, setError] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [touched, setTouched] = useState(false);
   const [pending, setPending] = useState(false);
+  const shown = useRef(false);
+
+  useEffect(() => {
+    if (shown.current) return;
+    shown.current = true;
+    if (params.get("error") === "google") notify.error(t("googleError"));
+  }, [params, t]);
+
+  const emailError = touched && !validEmail(email) ? t("emailInvalid") : "";
+  const passwordError = touched && !password ? t("required") : "";
 
   async function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    const data = new FormData(event.currentTarget);
+    setTouched(true);
+    if (!validEmail(email) || !password) return;
     setPending(true);
-    setError("");
     try {
       const next = params.get("next") || routes.home;
-      const stripped = next.replace(/^\/(az|en)/, "") || routes.home;
+      const stripped = next.replace(/^\/(az|en|ru)(?=\/|$)/, "") || routes.home;
       await authService.csrf();
-      await authService.login({
-        email: String(data.get("email")),
-        password: String(data.get("password")),
-      });
+      await authService.login({ email: email.trim(), password });
+      notify.success(t("welcomeBack"));
       router.replace(stripped.startsWith("/") ? stripped : routes.home);
       router.refresh();
     } catch (err) {
-      setError(t(codeOf(err) as "INVALID_CREDENTIALS"));
-    } finally {
+      const code = errorCode(err);
+      notify.error(t.has(code) ? t(code as "INVALID_CREDENTIALS") : t("SERVER_ERROR"));
       setPending(false);
     }
   }
 
   return (
-    <form onSubmit={onSubmit} className="glass liquid-card rounded-xl p-6">
-      <h1 className="text-title font-semibold">{t("loginTitle")}</h1>
-      <p className="mt-2 text-sm text-muted-foreground">{t("loginText")}</p>
-      <div className="mt-6 grid gap-4">
-        <div className="grid gap-2">
-          <Label htmlFor="email">{t("email")}</Label>
-          <Input id="email" name="email" type="email" required autoComplete="email" />
-        </div>
-        <div className="grid gap-2">
-          <Label htmlFor="password">{t("password")}</Label>
-          <Input id="password" name="password" type="password" required autoComplete="current-password" />
-        </div>
-        {error && <p className="text-sm text-danger">{error}</p>}
-        <Button type="submit" disabled={pending}>{t("submitLogin")}</Button>
-      </div>
-      <div className="mt-4 flex flex-col gap-2 text-sm">
-        <Link href={routes.forgot} className="font-semibold">{t("forgot")}</Link>
-        <p>
-          {t("noAccount")} <Link href={routes.register} className="font-semibold">{t("submitRegister")}</Link>
-        </p>
-      </div>
-    </form>
+    <AuthCard
+      title={t("loginTitle")}
+      text={t("loginText")}
+      footer={<>{t("noAccount")} <Link href={routes.register} className="font-semibold text-primary underline-offset-4 hover:underline">{t("submitRegister")}</Link></>}
+    >
+      <GoogleButton />
+      <AuthDivider />
+      <form onSubmit={onSubmit} noValidate className="grid gap-4">
+        <AuthField label={t("email")} icon={<Mail />} type="email" name="email" autoComplete="email" placeholder="you@example.com"
+          value={email} onChange={(e) => setEmail(e.target.value)} error={emailError} />
+        <AuthField label={t("password")} icon={<Lock />} type="password" name="password" autoComplete="current-password" placeholder="••••••••••"
+          value={password} onChange={(e) => setPassword(e.target.value)} error={passwordError}
+          labelAside={<Link href={routes.forgot} className="text-xs font-semibold text-muted-foreground hover:text-foreground">{t("forgot")}</Link>} />
+        <Button type="submit" disabled={pending} className="mt-1 h-12 rounded-xl text-[0.95rem]">
+          {pending && <Loader2 className="size-4 animate-spin" />}
+          {pending ? t("signingIn") : t("submitLogin")}
+        </Button>
+      </form>
+    </AuthCard>
   );
 }

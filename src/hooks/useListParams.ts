@@ -40,7 +40,7 @@ export function useListParams({
       sort: sp.get("sort") || defaults.sort,
       order: (sp.get("order") as "asc" | "desc") || defaults.order || "asc",
       q: sp.get("q") || "",
-      view: (sp.get("view") as "table" | "grid") || defaults.view || "table",
+      view: (sp.get("view") as "table" | "grid") || defaults.view || "grid",
       filters,
     };
   }, [sp, filterKeys, defaults.sort, defaults.order, defaults.view, defaults.limit, defaults.filters]);
@@ -57,7 +57,7 @@ export function useListParams({
       write("sort", patch.sort, defaults.sort);
       write("order", patch.order, defaults.order || "asc");
       write("q", patch.q, "");
-      write("view", patch.view, defaults.view || "table");
+      write("view", patch.view, defaults.view || "grid");
       if (patch.filters) for (const [key, value] of Object.entries(patch.filters)) write(key, value, defaults.filters?.[key] ?? "all");
       if (patch.page !== undefined) write("page", patch.page, 1);
       else if (resetPage && (patch.q !== undefined || patch.filters || patch.limit || patch.sort || patch.order)) next.delete("page");

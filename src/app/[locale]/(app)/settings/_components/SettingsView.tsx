@@ -1,5 +1,6 @@
 "use client";
 
+import { notify } from "@/lib/toast";
 import { useEffect, useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useTranslations } from "next-intl";
@@ -17,7 +18,6 @@ export default function SettingsView() {
   const client = useQueryClient();
   const [levels, setLevels] = useState<string[]>(user?.levels || ["A1"]);
   const [active, setActive] = useState(user?.activeLevel || "A1");
-  const [message, setMessage] = useState("");
   useEffect(() => {
     if (!user) return;
     setLevels(user.levels?.length ? user.levels : ["A1"]);
@@ -27,7 +27,7 @@ export default function SettingsView() {
     mutationFn: () => profileService.setLevels({ levels, activeLevel: levels.includes(active) ? active : levels[0] }),
     onSuccess: (next) => {
       client.setQueryData(["me"], next);
-      setMessage(t("saved"));
+      notify.success(t("saved"));
     },
   });
   if (!user) return null;
@@ -59,7 +59,6 @@ export default function SettingsView() {
         {t("active")}
         <Select ariaLabel={t("active")} value={levels.includes(active) ? active : levels[0]} onChange={(value) => setActive(value)} options={levels.map((level) => ({ value: level, label: level }))} className="w-full sm:w-60" />
       </label>
-      {message && <p className="text-sm">{message}</p>}
       <Button onClick={() => save.mutate()} disabled={save.isPending}>{t("save")}</Button>
       <AppearanceSection />
     </div>

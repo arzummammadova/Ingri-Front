@@ -12,6 +12,7 @@ import { cn } from "@/lib/utils";
 import { useNoteMutations, useNotes } from "@/hooks/useNotes";
 import { noteColorClass, type NoteColor } from "@/services/noteService";
 import NoteColorPicker from "./NoteColorPicker";
+import { notify } from "@/lib/toast";
 
 function pageContext(pathname: string) {
   const parts = pathname.split("/").filter(Boolean);
@@ -43,7 +44,7 @@ export default function NotesPanel() {
     if (!content.trim()) return;
     create.mutate(
       { title: title.trim(), content: content.trim(), color, context: pageContext(pathname) },
-      { onSuccess: () => { setTitle(""); setContent(""); } },
+      { onSuccess: () => { setTitle(""); setContent(""); notify.success(t("saved")); }, onError: () => notify.error(t("error")) },
     );
   };
 
@@ -87,8 +88,6 @@ export default function NotesPanel() {
           <Button type="submit" disabled={create.isPending || !content.trim()}>
             {create.isPending ? t("saving") : t("save")}
           </Button>
-          {create.isSuccess && <p className="text-xs font-semibold">{t("saved")}</p>}
-          {create.isError && <p className="text-xs font-semibold text-danger">{t("error")}</p>}
         </form>
         <div className="flex items-center justify-between">
           <h3 className="text-sm font-bold uppercase tracking-[0.14em] text-muted-foreground">{t("recent")}</h3>

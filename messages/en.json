@@ -62,7 +62,8 @@
     "xp": "XP",
     "streak": "Streak",
     "close": "Close",
-    "cancel": "Cancel"
+    "cancel": "Cancel",
+    "saveError": "Couldn't save. Please try again."
   },
   "auth": {
     "loginTitle": "Welcome back",
@@ -101,7 +102,41 @@
     "RATE_LIMITED": "Too many attempts. Try again later.",
     "INVALID_CSRF": "Refresh the page and try again.",
     "SERVER_ERROR": "Server error. Try again shortly.",
-    "mismatch": "Passwords do not match."
+    "mismatch": "Passwords do not match.",
+    "google": "Continue with Google",
+    "or": "or",
+    "showPassword": "Show password",
+    "hidePassword": "Hide password",
+    "emailInvalid": "Enter a valid email address.",
+    "required": "Please fill in this field.",
+    "passwordWeak": "The password doesn't meet the rules yet.",
+    "ruleLength": "At least 10 characters",
+    "ruleCase": "Upper & lower case",
+    "ruleNumber": "A number",
+    "ruleSymbol": "A symbol (!@#…)",
+    "username": "Username",
+    "usernameHint": "3–20 characters: lowercase letters, numbers, dot and underscore.",
+    "usernameInvalid": "Only lowercase letters, numbers, “.” and “_” — 3–20 characters.",
+    "usernameFree": "Nice, this username is free!",
+    "USERNAME_TAKEN": "This username is already taken. Try another one.",
+    "USE_GOOGLE": "This account was created with Google. Use “Continue with Google”.",
+    "googleError": "Google sign-in didn't work. Please try again.",
+    "welcomeBack": "Welcome back! 👋",
+    "signingIn": "Signing in…",
+    "creating": "Creating your account…",
+    "registered": "Account created! 🎉",
+    "checkInboxTitle": "Check your inbox 📬",
+    "checkInboxText": "We sent a link to {email}. Can't find it? Check your spam folder too.",
+    "backToLogin": "Back to sign in",
+    "verifying": "Verifying your email…",
+    "verifyResendText": "No email yet? Enter your address and we'll send it again.",
+    "terms": "By continuing you accept the Ingri terms.",
+    "brandTitle": "Learn English a little every day",
+    "brandText": "Podcasts, grammar, speaking practice and an AI tutor — all in one place, matched to your level.",
+    "perkListen": "Short podcasts with real audio",
+    "perkGrammar": "Clear grammar and mini quizzes",
+    "perkSpeak": "Speaking practice with instant scores",
+    "perkAi": "Ingri — your personal AI tutor"
   },
   "dashboard": {
     "hello": "Hello, {name}",
@@ -246,7 +281,9 @@
     "securityText": "Change your password or delete the account.",
     "deleteAccount": "Delete account",
     "deleteWarn": "This cannot be undone. Enter your password.",
-    "confirmDelete": "Delete the account forever"
+    "confirmDelete": "Delete the account forever",
+    "username": "Username",
+    "setPasswordText": "Your account uses Google sign-in. Set a password if you also want to sign in with email."
   },
   "footer": {
     "note": "English for Azerbaijani speakers.",

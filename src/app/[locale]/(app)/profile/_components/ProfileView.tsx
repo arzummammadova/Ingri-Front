@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useState } from "react";
+import { FormEvent } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
@@ -13,6 +13,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { PersonAvatar, SectionTitle } from "@/ui/components/primitives";
 import { avatarSrc } from "@/lib/utils";
 import { routes } from "@/config/routes";
+import { notify, errorCode } from "@/lib/toast";
 
 const presets = ["aysel", "nigar", "elvin", "kamran", "sabina", "rashad", "gunel", "tural"];
 const goals = ["travel", "work", "exams", "daily"] as const;
@@ -21,14 +22,18 @@ const levels = ["A1", "A2", "B1", "B2", "C1", "C2"];
 export default function ProfileView() {
   const t = useTranslations("profile");
   const common = useTranslations("common");
+  const auth = useTranslations("auth");
   const { user } = useAuth();
   const client = useQueryClient();
-  const [message, setMessage] = useState("");
   const update = useMutation({
     mutationFn: profileService.update,
     onSuccess: (next) => {
       client.setQueryData(["me"], next);
-      setMessage(common("saved"));
+      notify.success(common("saved"));
+    },
+    onError: (error) => {
+      const code = errorCode(error);
+      notify.error(code === "USERNAME_TAKEN" ? auth("USERNAME_TAKEN") : code === "VALIDATION" ? auth("usernameInvalid") : common("saveError"));
     },
   });
   const avatar = useMutation({
@@ -37,7 +42,11 @@ export default function ProfileView() {
       if (action.type === "file") return profileService.upload(action.file);
       return profileService.removeAvatar();
     },
-    onSuccess: (next) => client.setQueryData(["me"], next),
+    onSuccess: (next) => {
+      client.setQueryData(["me"], next);
+      notify.success(common("saved"));
+    },
+    onError: () => notify.error(common("saveError")),
   });
 
   if (!user) return null;
@@ -46,7 +55,7 @@ export default function ProfileView() {
     event.preventDefault();
     const data = new FormData(event.currentTarget);
     update.mutate({
-      name: String(data.get("name")),
+      username: String(data.get("username")).trim().toLowerCase(),
       bio: String(data.get("bio")),
       city: String(data.get("city")),
       level: String(data.get("level")),
@@ -60,13 +69,13 @@ export default function ProfileView() {
       <div className="flex items-center gap-4">
         <PersonAvatar src={avatarSrc(user)} alt={user.name} className="size-24" />
         <div>
-          <p className="text-xl font-semibold">{user.name}</p>
+          <p className="text-xl font-semibold">@{user.username || user.name}</p>
           <p className="text-sm text-muted-foreground">{user.email}</p>
           <Link href={routes.security} className="text-sm font-semibold">{t("securityTitle")}</Link>
         </div>
       </div>
       <form onSubmit={onSubmit} className="glass grid gap-4 rounded-xl p-6">
-        <div className="grid gap-2"><Label htmlFor="name">{common("you")}</Label><Input id="name" name="name" defaultValue={user.name} required /></div>
+        <div className="grid gap-2"><Label htmlFor="username">{t("username")}</Label><Input id="username" name="username" defaultValue={user.username || user.name} required minLength={3} maxLength={20} pattern="[a-z0-9._]{3,20}" autoCapitalize="none" spellCheck={false} /><p className="text-xs text-muted-foreground">{auth("usernameHint")}</p></div>
         <div className="grid gap-2"><Label htmlFor="bio">{t("bio")}</Label><Textarea id="bio" name="bio" defaultValue={user.bio} maxLength={280} /></div>
         <div className="grid gap-2 sm:grid-cols-2">
           <label className="grid gap-2 text-sm font-semibold">{t("city")}<Input name="city" defaultValue={user.city} /></label>
@@ -87,8 +96,7 @@ export default function ProfileView() {
             ))}
           </div>
         </fieldset>
-        {message && <p className="text-sm">{message}</p>}
-        <Button type="submit">{common("save")}</Button>
+        <Button type="submit" disabled={update.isPending}>{common("save")}</Button>
       </form>
       <section className="glass rounded-xl p-6">
         <h2 className="font-semibold">{t("avatar")}</h2>

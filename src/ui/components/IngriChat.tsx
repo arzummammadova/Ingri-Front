@@ -37,7 +37,7 @@ function useClock(locale: string) {
     (value?: string | number) => {
       const date = value ? new Date(value) : new Date();
       if (Number.isNaN(date.getTime())) return "";
-      return new Intl.DateTimeFormat(locale === "az" ? "az-Latn-AZ" : "en-GB", { hour: "2-digit", minute: "2-digit" }).format(date);
+      return new Intl.DateTimeFormat(locale === "az" ? "az-Latn-AZ" : locale === "ru" ? "ru-RU" : "en-GB", { hour: "2-digit", minute: "2-digit" }).format(date);
     },
     [locale],
   );

@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { routing } from "@/i18n/routing";
 import ReactQueryProvider from "@/app/providers/ReactQueryProvider";
 import ThemeProvider from "@/ui/ThemeProvider";
+import AppToaster from "@/ui/components/AppToaster";
 import LiquidCursor from "@/ui/components/LiquidCursor";
 
 export function generateStaticParams() {
@@ -27,6 +28,7 @@ export default async function LocaleLayout({
         <ReactQueryProvider>
           {children}
           <LiquidCursor />
+          <AppToaster />
         </ReactQueryProvider>
       </ThemeProvider>
     </NextIntlClientProvider>

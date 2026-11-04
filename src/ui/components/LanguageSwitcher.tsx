@@ -3,13 +3,13 @@
 import { useCallback, useRef, useState, useTransition } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import { ChevronDown } from "lucide-react";
-import { AZ, GB } from "country-flag-icons/react/3x2";
+import { AZ, GB, RU } from "country-flag-icons/react/3x2";
 import { usePathname, useRouter } from "@/i18n/navigation";
 import { routing, type Locale } from "@/i18n/routing";
 import { Popover } from "./Popover";
 
-const flags = { az: AZ, en: GB };
-const names: Record<Locale, string> = { az: "Azərbaycan", en: "English" };
+const flags = { az: AZ, en: GB, ru: RU };
+const names: Record<Locale, string> = { az: "Azərbaycan", en: "English", ru: "Русский" };
 
 export default function LanguageSwitcher() {
   const locale = useLocale() as Locale;

@@ -62,7 +62,8 @@
     "xp": "XP",
     "streak": "Seriya",
     "close": "Bağla",
-    "cancel": "Ləğv et"
+    "cancel": "Ləğv et",
+    "saveError": "Saxlamaq alınmadı. Yenidən cəhd et."
   },
   "auth": {
     "loginTitle": "Yenidən xoş gəldin",
@@ -101,7 +102,41 @@
     "RATE_LIMITED": "Çox sayda cəhd. Bir az sonra yenidən yoxla.",
     "INVALID_CSRF": "Səhifəni yenilə və yenidən cəhd et.",
     "SERVER_ERROR": "Server xətası. Bir az sonra yenidən yoxla.",
-    "mismatch": "Şifrələr eyni deyil."
+    "mismatch": "Şifrələr eyni deyil.",
+    "google": "Google ilə davam et",
+    "or": "və ya",
+    "showPassword": "Şifrəni göstər",
+    "hidePassword": "Şifrəni gizlət",
+    "emailInvalid": "Düzgün e-poçt ünvanı yaz.",
+    "required": "Bu xananı doldur.",
+    "passwordWeak": "Şifrə tələblərə uyğun deyil.",
+    "ruleLength": "Ən az 10 simvol",
+    "ruleCase": "Böyük və kiçik hərf",
+    "ruleNumber": "Rəqəm",
+    "ruleSymbol": "Simvol (!@#…)",
+    "username": "İstifadəçi adı",
+    "usernameHint": "3–20 simvol: kiçik hərf, rəqəm, nöqtə və alt xətt.",
+    "usernameInvalid": "Yalnız kiçik hərf, rəqəm, “.” və “_” — 3–20 simvol.",
+    "usernameFree": "Əla, bu ad boşdur!",
+    "USERNAME_TAKEN": "Bu istifadəçi adı artıq tutulub. Başqasını yoxla.",
+    "USE_GOOGLE": "Bu hesab Google ilə yaradılıb. “Google ilə davam et” düyməsini seç.",
+    "googleError": "Google ilə giriş alınmadı. Yenidən cəhd et.",
+    "welcomeBack": "Xoş gəldin! 👋",
+    "signingIn": "Daxil olunur…",
+    "creating": "Hesab yaradılır…",
+    "registered": "Hesab yaradıldı! 🎉",
+    "checkInboxTitle": "Poçtunu yoxla 📬",
+    "checkInboxText": "{email} ünvanına keçid göndərdik. Məktubu tapmasan, spam qovluğuna da bax.",
+    "backToLogin": "Girişə qayıt",
+    "verifying": "E-poçt təsdiqlənir…",
+    "verifyResendText": "Məktub gəlməyib? E-poçtunu yaz, yenidən göndərək.",
+    "terms": "Davam etməklə Ingri qaydalarını qəbul edirsən.",
+    "brandTitle": "İngilis dilini hər gün bir az öyrən",
+    "brandText": "Podkastlar, qrammatika, danışıq məşqləri və süni intellekt köməkçisi — hamısı bir yerdə, sənin səviyyənə uyğun.",
+    "perkListen": "Real səsli qısa podkastlar",
+    "perkGrammar": "Aydın qrammatika və mini testlər",
+    "perkSpeak": "Danışıq məşqi və anında xal",
+    "perkAi": "Ingri — şəxsi AI müəllimin"
   },
   "dashboard": {
     "hello": "Salam, {name}",
@@ -246,7 +281,9 @@
     "securityText": "Şifrəni dəyiş və ya hesabı sil.",
     "deleteAccount": "Hesabı sil",
     "deleteWarn": "Bu əməliyyat geri qaytarılmır. Şifrəni yaz.",
-    "confirmDelete": "Hesabı birdəfəlik sil"
+    "confirmDelete": "Hesabı birdəfəlik sil",
+    "username": "İstifadəçi adı",
+    "setPasswordText": "Hesabın Google ilə açılıb. İstəsən, e-poçt ilə də daxil olmaq üçün şifrə təyin et."
   },
   "footer": {
     "note": "Azərbaycanlılar üçün ingilis dili.",
