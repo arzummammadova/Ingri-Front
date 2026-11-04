@@ -1,0 +1,48 @@
+export const routes = {
+  home: "/dashboard",
+  plan: "/plan",
+  settings: "/settings",
+  onboarding: "/onboarding",
+  videos: "/videos",
+  movies: "/movies",
+  books: "/books",
+  podcasts: "/podcasts",
+  grammar: "/grammar",
+  listening: "/listening",
+  speaking: "/speaking",
+  words: "/words",
+  notes: "/notes",
+  flashcards: "/words/flashcards",
+  leaderboard: "/leaderboard",
+  profile: "/profile",
+  security: "/profile/security",
+  login: "/login",
+  register: "/register",
+  forgot: "/forgot-password",
+  reset: "/reset-password",
+  verify: "/verify-email",
+} as const;
+
+export const mainNav = [
+  { key: "overview", href: routes.home },
+  { key: "plan", href: routes.plan },
+  { key: "podcasts", href: routes.podcasts },
+  { key: "grammar", href: routes.grammar },
+  { key: "listening", href: routes.listening },
+  { key: "speaking", href: routes.speaking },
+  { key: "words", href: routes.words },
+  { key: "videos", href: routes.videos },
+  { key: "movies", href: routes.movies },
+  { key: "books", href: routes.books },
+  { key: "notes", href: routes.notes },
+  { key: "leaderboard", href: routes.leaderboard },
+  { key: "settings", href: routes.settings },
+  { key: "profile", href: routes.profile },
+] as const;
+
+export const bottomNav = [
+  { key: "overview", href: routes.home },
+  { key: "words", href: routes.words },
+  { key: "podcasts", href: routes.podcasts },
+  { key: "speaking", href: routes.speaking },
+] as const;

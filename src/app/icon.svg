@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" role="img" aria-label="Ingri">
+  <defs>
+    <linearGradient id="ingri-body" x1="0.1" y1="0.05" x2="0.95" y2="0.95">
+      <stop offset="0" stop-color="#d4b8f6"/>
+      <stop offset="0.5" stop-color="#b3d8f5"/>
+      <stop offset="1" stop-color="#94ead2"/>
+    </linearGradient>
+    <linearGradient id="ingri-tail" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#f7a77e"/>
+      <stop offset="1" stop-color="#f9c79a" stop-opacity="0"/>
+    </linearGradient>
+    <radialGradient id="ingri-gloss" cx="0.35" cy="0.25" r="0.5">
+      <stop offset="0" stop-color="#fff" stop-opacity="0.65"/>
+      <stop offset="1" stop-color="#fff" stop-opacity="0"/>
+    </radialGradient>
+    <clipPath id="ingri-clip"><path id="ingri-shape" d="M60 14c28 0 48 16 48 41s-19 41-46 41c-11 0-19 2-26 7-8 6-17 9-20 4-2-4 2-9 3-16-8-8-12-19-12-34C7 30 31 14 60 14Z"/></clipPath>
+  </defs>
+  <g clip-path="url(#ingri-clip)">
+    <rect width="120" height="120" fill="url(#ingri-body)"/>
+    <path d="M6 104c10 6 20 2 30-5 10-6 22-6 40-4v30H0Z" fill="url(#ingri-tail)"/>
+    <rect width="120" height="120" fill="url(#ingri-gloss)"/>
+  </g>
+  <circle cx="40" cy="52" r="6.5" fill="#1b2453"/>
+  <circle cx="80" cy="52" r="6.5" fill="#1b2453"/>
+  <circle cx="42" cy="49.5" r="2" fill="#fff"/>
+  <circle cx="82" cy="49.5" r="2" fill="#fff"/>
+  <path d="M50 65q10 9 20 0" fill="none" stroke="#1b2453" stroke-width="4.5" stroke-linecap="round"/>
+</svg>
