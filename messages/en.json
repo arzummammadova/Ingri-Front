@@ -711,7 +711,7 @@
     "continue": "Continue",
     "locked": "Locked",
     "lockedPrev": "Finish “{title}” first.",
-    "lockedLevel": "Level {level} is locked. Finish every lesson of the previous level first.",
+    "lockedLevel": "Level {level} is locked. It opens once you finish {percent}% of the previous level.",
     "lockedTitle": "This lesson is still locked",
     "lockedText": "Lessons open one by one: finish the previous one to unlock this.",
     "goPrev": "Go to the previous lesson",
@@ -726,7 +726,11 @@
     "allDone": "You finished this whole level!",
     "mascot": "One step every day!",
     "completed": "Completed",
-    "new": "New"
+    "new": "New",
+    "lockedLevelGate": "Level {level} opens once you finish {percent}% of {prev}: {done}/{required} done.",
+    "unlockProgress": "{done}/{required} to unlock {level}",
+    "unlockHint": "Finish {left} more to unlock {level} ({percent}%).",
+    "nextOpen": "Level {level} is already open!"
   },
   "reminders": {
     "title": "Want a daily reminder?",

@@ -1,5 +1,5 @@
 import { api } from "./api";
-import type { GrammarLesson, ListeningItem, Peer, Podcast, Progress, SpeakingItem, User, Word } from "@/types";
+import type { GrammarLesson, ListeningItem, Peer, Podcast, Progress, SpeakingItem, User, Word, LevelGate } from "@/types";
 
 const list = async <T>(path: string) => (await api.get<{ items: T[] }>(path)).data.items;
 const one = async <T>(path: string) => (await api.get<{ item: T }>(path)).data.item;
@@ -93,7 +93,21 @@ export const flashcardService = {
 export type QuizResult = Progress & { passed?: boolean; awarded?: number; passMark?: number; score?: number };
 
 export type PathKind = "podcast" | "grammar" | "listening" | "speaking";
-export type PathLevel = { level: string; total: number; done: number; unlocked: boolean; complete: boolean };
+/** Share of a level that must be finished to open the next one (mirrors the backend constant). */
+export const LEVEL_UNLOCK_RATIO = 0.8;
+export const LEVEL_UNLOCK_PERCENT = Math.round(LEVEL_UNLOCK_RATIO * 100);
+export type PathLevel = {
+  level: string;
+  total: number;
+  done: number;
+  unlocked: boolean;
+  complete: boolean;
+  /** Completed items needed to open the next level. */
+  required?: number;
+  passed?: boolean;
+  /** When this level is locked: the previous level's progress toward opening it. */
+  gate?: LevelGate | null;
+};
 export type PathItem = {
   slug: string;
   title?: string;

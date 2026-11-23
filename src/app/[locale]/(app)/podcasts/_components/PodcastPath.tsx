@@ -6,7 +6,7 @@ import { useLocale, useTranslations } from "next-intl";
 import { BookOpen, Check, Headphones, Lock, Mic, Star, Trophy } from "lucide-react";
 import { Link } from "@/i18n/navigation";
 import { useAuth } from "@/hooks/useAuth";
-import { progressService, type PathItem, type PathLevel } from "@/services/contentService";
+import { LEVEL_UNLOCK_PERCENT, LEVEL_UNLOCK_RATIO, progressService, type PathItem, type PathLevel } from "@/services/contentService";
 import { routes } from "@/config/routes";
 import { cn } from "@/lib/utils";
 import { notify } from "@/lib/toast";
@@ -46,6 +46,14 @@ function ChestIcon({ open, className }: { open: boolean; className?: string }) {
   );
 }
 
+type PathT = ReturnType<typeof useTranslations<"path">>;
+/** "B1 opens after 80% of A2 (5/8)" — falls back to a generic line when the server sent no gate. */
+function lockedLevelText(t: PathT, l: PathLevel) {
+  return l.gate
+    ? t("lockedLevelGate", { level: l.level, prev: l.gate.level, percent: LEVEL_UNLOCK_PERCENT, done: l.gate.done, required: l.gate.required })
+    : t("lockedLevel", { level: l.level, percent: LEVEL_UNLOCK_PERCENT });
+}
+
 function LevelChips({ levels, value, onChange }: { levels: PathLevel[]; value: string; onChange: (level: string) => void }) {
   const t = useTranslations("path");
   return (
@@ -56,7 +64,7 @@ function LevelChips({ levels, value, onChange }: { levels: PathLevel[]; value: s
           type="button"
           role="tab"
           aria-selected={value === l.level}
-          onClick={() => (l.unlocked ? onChange(l.level) : notify.info(t("lockedLevel", { level: l.level })))}
+          onClick={() => (l.unlocked ? onChange(l.level) : notify.info(lockedLevelText(t, l)))}
           className={cn(
             "inline-flex shrink-0 items-center gap-1.5 rounded-full border-2 px-3.5 py-1.5 text-sm font-bold transition",
             value === l.level ? "border-foreground bg-primary text-primary-foreground" : "border-border bg-card",
@@ -224,7 +232,14 @@ export default function PodcastPath() {
               <p className="text-sm font-bold">{lvl?.complete ? t("allDone") : t("unit", { level: data.level })}</p>
               {nextLevel && (
                 <p className="text-xs text-muted-foreground">
-                  {nextLevel.unlocked ? `→ ${nextLevel.level}` : <span className="inline-flex items-center gap-1"><Lock className="size-3" /> {nextLevel.level} · {t("levelLocked")}</span>}
+                  {nextLevel.unlocked ? (
+                    `→ ${nextLevel.level}`
+                  ) : (
+                    <span className="inline-flex items-center gap-1">
+                      <Lock className="size-3" />
+                      {nextLevel.gate ? t("unlockProgress", { done: nextLevel.gate.done, required: nextLevel.gate.required, level: nextLevel.level }) : `${nextLevel.level} · ${t("levelLocked")}`}
+                    </span>
+                  )}
                 </p>
               )}
             </li>
@@ -240,6 +255,18 @@ export default function PodcastPath() {
             <div className="h-full rounded-full bg-[#7c4dbd] transition-all" style={{ width: `${percent}%` }} />
           </div>
           {lvl && <p className="mt-2 text-sm font-semibold">{t("progress", { done: lvl.done, total: lvl.total })}</p>}
+          {lvl && nextLevel && lvl.total > 0 && (
+            <p className="mt-1 flex items-center gap-1 text-xs text-muted-foreground">
+              {nextLevel.unlocked ? (
+                t("nextOpen", { level: nextLevel.level })
+              ) : (
+                <>
+                  <Lock className="size-3" />
+                  {t("unlockHint", { percent: LEVEL_UNLOCK_PERCENT, level: nextLevel.level, left: Math.max(0, (lvl.required ?? Math.ceil(lvl.total * LEVEL_UNLOCK_RATIO)) - lvl.done) })}
+                </>
+              )}
+            </p>
+          )}
         </div>
         {current ? (
           <Link href={`${routes.podcasts}/${current.slug}`} className="glass grid gap-2 rounded-xl p-5 transition hover:-translate-y-0.5">

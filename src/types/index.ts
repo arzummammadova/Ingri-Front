@@ -50,7 +50,9 @@ export type Sentence = { en: string; az: string; speaker?: string; start?: numbe
 export type Glossary = { en: string; az: string; ipa: string; example?: string };
 
 /** Sequential path state the API adds for signed-in users (podcast, grammar, listening, speaking). */
-export type LockInfo = { reason: "previous" | "level"; prev: { slug: string; title: string; titleAz?: string } | null; level?: string };
+export type LockInfo = { reason: "previous" | "level"; prev: { slug: string; title: string; titleAz?: string } | null; level?: string; gate?: LevelGate | null; ratio?: number };
+/** Progress of the previous level toward opening a locked level (server: LEVEL_UNLOCK_RATIO of its items). */
+export type LevelGate = { level: string; done: number; required: number };
 export type PathFlags = { locked?: boolean; current?: boolean; completed?: boolean; lock?: LockInfo };
 
 export type Podcast = {

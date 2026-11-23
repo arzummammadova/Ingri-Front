@@ -711,7 +711,7 @@
     "continue": "Davam et",
     "locked": "Bağlıdır",
     "lockedPrev": "Əvvəlcə “{title}” dərsini bitir.",
-    "lockedLevel": "{level} səviyyəsi bağlıdır. Əvvəlki səviyyənin bütün dərslərini bitir.",
+    "lockedLevel": "{level} səviyyəsi bağlıdır. Əvvəlki səviyyənin {percent}%-ni bitirəndə açılacaq.",
     "lockedTitle": "Bu dərs hələ bağlıdır",
     "lockedText": "Dərslər ardıcıl açılır: əvvəlki dərsi bitirəndə bu açılacaq.",
     "goPrev": "Əvvəlki dərsə keç",
@@ -726,7 +726,11 @@
     "allDone": "Bu səviyyənin hamısını bitirdin!",
     "mascot": "Hər gün bir addım!",
     "completed": "Tamamlandı",
-    "new": "Yeni"
+    "new": "Yeni",
+    "lockedLevelGate": "{level} səviyyəsi {prev} səviyyəsinin {percent}%-ni bitirəndə açılır: {done}/{required} hazırdır.",
+    "unlockProgress": "{level} üçün {done}/{required}",
+    "unlockHint": "{level} səviyyəsini açmaq üçün daha {left} dərs bitir ({percent}%).",
+    "nextOpen": "{level} səviyyəsi artıq açıqdır!"
   },
   "reminders": {
     "title": "Gündəlik xatırlatma istəyirsən?",
