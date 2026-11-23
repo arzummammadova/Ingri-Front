@@ -7,20 +7,30 @@ export const viewport: Viewport = {
   userScalable: false,
   viewportFit: "cover",
 };
-import { Fredoka, Poppins } from "next/font/google";
+import localFont from "next/font/local";
 import "@/styles/globals.css";
 import { PREFS_BOOT_SCRIPT } from "@/lib/prefsBoot";
 
-const poppins = Poppins({
-  subsets: ["latin", "latin-ext"],
-  weight: ["400", "500", "600", "700", "800"],
+// Self-hosted (latin + latin-ext subsets of the official Google Fonts files) so the
+// build never depends on fetching fonts.googleapis.com at build time.
+const poppins = localFont({
+  src: [
+    { path: "./fonts/poppins-400.woff2", weight: "400", style: "normal" },
+    { path: "./fonts/poppins-500.woff2", weight: "500", style: "normal" },
+    { path: "./fonts/poppins-600.woff2", weight: "600", style: "normal" },
+    { path: "./fonts/poppins-700.woff2", weight: "700", style: "normal" },
+    { path: "./fonts/poppins-800.woff2", weight: "800", style: "normal" },
+  ],
   variable: "--font-poppins",
+  display: "swap",
+  fallback: ["system-ui", "Arial", "sans-serif"],
 });
 
-const fredoka = Fredoka({
-  subsets: ["latin", "latin-ext"],
-  weight: ["500", "600", "700"],
+const fredoka = localFont({
+  src: [{ path: "./fonts/fredoka-var.woff2", weight: "300 700", style: "normal" }],
   variable: "--font-fredoka",
+  display: "swap",
+  fallback: ["system-ui", "Arial", "sans-serif"],
 });
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:43123";
