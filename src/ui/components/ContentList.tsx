@@ -8,6 +8,8 @@ import { fetchPage } from "@/services/listService";
 import { useListParams } from "@/hooks/useListParams";
 import { useAuth } from "@/hooks/useAuth";
 import { LEVELS } from "@/lib/levels";
+import { Lock } from "lucide-react";
+import { notify } from "@/lib/toast";
 import { SectionTitle } from "./primitives";
 import DataTable, { EmptyState, Pagination, type DataTableColumn } from "./DataTable";
 import FilterBar, { type FilterDef } from "./FilterBar";
@@ -132,8 +134,12 @@ function Inner<T extends { slug: string }>(props: ContentListProps<T>) {
             <div className={`${props.gridClassName || "grid gap-4 md:grid-cols-2"} transition-opacity ${query.isFetching ? "opacity-70" : ""}`}>
               {data.items.map((item) => (
                 <div key={props.getKey?.(item) || item.slug} className="relative grid">
-                  {props.renderCard(item)}
-                  {isNew(item) && !isDone(item) && <NewBadge />}
+                  {isLocked(item) ? (
+                    <LockedCard>{props.renderCard(item)}</LockedCard>
+                  ) : (
+                    props.renderCard(item)
+                  )}
+                  {isLocked(item) ? <LockBadge /> : isNew(item) && !isDone(item) && <NewBadge />}
                   {isDone(item) && <DoneBadge />}
                 </div>
               ))}
@@ -151,7 +157,7 @@ function Inner<T extends { slug: string }>(props: ContentListProps<T>) {
           loading={loading}
           fetching={query.isFetching}
           sort={{ sort: state.sort, order: state.order, onSort: (sort, order) => set({ sort, order }) }}
-          rowHref={props.hrefFor}
+          rowHref={(row) => (isLocked(row) ? "" : props.hrefFor(row))}
           renderLink={(href, children, className) => <Link href={href} className={className}>{children}</Link>}
           pagination={pagination}
           empty={empty}
@@ -162,6 +168,26 @@ function Inner<T extends { slug: string }>(props: ContentListProps<T>) {
 }
 
 export const isDone = (item: unknown) => (item as { completed?: boolean })?.completed === true;
+export const isLocked = (item: unknown) => (item as { locked?: boolean })?.locked === true;
+
+/** Sequential lessons: a locked card is visible but not clickable; tapping it explains why. */
+function LockedCard({ children }: { children: ReactNode }) {
+  const t = useTranslations("path");
+  return (
+    <div className="relative grid">
+      <div aria-disabled="true" className="pointer-events-none grid select-none opacity-55 grayscale">{children}</div>
+      <button type="button" aria-label={t("locked")} title={t("lockedText")} onClick={() => notify.info(t("lockedText"))} className="absolute inset-0 z-[1] cursor-not-allowed rounded-xl" />
+    </div>
+  );
+}
+function LockBadge() {
+  const t = useTranslations("path");
+  return (
+    <span className="pointer-events-none absolute right-3 top-3 z-[2] inline-flex items-center gap-1 rounded-full bg-muted px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-muted-foreground shadow-sm">
+      <Lock className="size-3" /> {t("locked")}
+    </span>
+  );
+}
 function DoneBadge() {
   const t = useTranslations("datatable");
   return (

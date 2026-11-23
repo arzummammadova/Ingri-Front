@@ -27,6 +27,7 @@ export type User = {
   lastActiveDate: string;
   longestStreak?: number;
   timezone?: string;
+  reminders?: { email: boolean; asked: boolean; hour: number };
   preferences?: { theme?: "light" | "dark" | "system"; accent?: "ink" | "lilac" | "aqua" | "peach" | "mint" | "rose" | "blue"; fontSize?: "small" | "normal" | "large"; reducedMotion?: boolean; sound?: boolean; volume?: number; updatedAt?: number };
 };
 
@@ -45,8 +46,12 @@ export type Peer = {
   rank: number;
 };
 
-export type Sentence = { en: string; az: string; speaker?: string };
-export type Glossary = { en: string; az: string; ipa: string };
+export type Sentence = { en: string; az: string; speaker?: string; start?: number; end?: number };
+export type Glossary = { en: string; az: string; ipa: string; example?: string };
+
+/** Sequential path state the API adds for signed-in users (podcast, grammar, listening, speaking). */
+export type LockInfo = { reason: "previous" | "level"; prev: { slug: string; title: string; titleAz?: string } | null; level?: string };
+export type PathFlags = { locked?: boolean; current?: boolean; completed?: boolean; lock?: LockInfo };
 
 export type Podcast = {
   slug: string;
@@ -63,7 +68,9 @@ export type Podcast = {
   audioUrl?: string;
   transcriptAvailable?: boolean;
   alsoFor?: string[];
-};
+  publishedAt?: string;
+  durationSec?: number;
+} & PathFlags;
 
 export type QuizQuestion = {
   prompt: string;
@@ -87,7 +94,7 @@ export type GrammarLesson = {
   rulesAz: string[];
   examples: { en: string; az: string }[];
   quiz: QuizQuestion[];
-};
+} & PathFlags;
 
 export type ListeningItem = {
   slug: string;
@@ -98,7 +105,7 @@ export type ListeningItem = {
   accent: Podcast["accent"];
   lines: Sentence[];
   questions: QuizQuestion[];
-};
+} & PathFlags;
 
 export type SpeakingItem = {
   slug: string;
@@ -109,7 +116,7 @@ export type SpeakingItem = {
   tip: string;
   tipAz: string;
   level: string;
-};
+} & PathFlags;
 
 export type Word = {
   slug: string;

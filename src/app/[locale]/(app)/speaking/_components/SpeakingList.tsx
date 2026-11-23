@@ -23,7 +23,6 @@ export default function SpeakingList() {
       title={t("title")}
       text={t("text")}
       defaultSort="newest"
-      levelDefault="all"
       hrefFor={(item) => `${routes.speaking}/${item.slug}`}
       facets={[{ key: "category", label: d("category") }]}
       sortOptions={[{ value: "newest", label: d("newest") }, { value: "order", label: d("recommended") }, { value: "en", label: d("col.phrase") }, { value: "level", label: d("level") }, { value: "category", label: d("category") }]}

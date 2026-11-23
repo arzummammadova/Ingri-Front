@@ -40,15 +40,18 @@ export const progressService = {
   flashcards: async (cards: number) => (await api.post<{ awarded: number }>("/progress/flashcards", { cards })).data,
   podcast: (body: { slug: string; seconds: number; completed: boolean }) =>
     api.post<Progress>("/progress/podcast", body).then((r) => r.data),
-  quiz: (slug: string, score: number) => api.post<Progress>("/progress/quiz", { slug, score }).then((r) => r.data),
-  listening: (slug: string, score: number) =>
-    api.post<QuizResult>("/progress/listening", { slug, score }).then((r) => r.data),
+  /** Quizzes are scored on the server from the chosen option indexes. */
+  quiz: (slug: string, answers: number[]) => api.post<QuizResult>("/progress/quiz", { slug, answers }).then((r) => r.data),
+  listening: (slug: string, answers: number[]) =>
+    api.post<QuizResult>("/progress/listening", { slug, answers }).then((r) => r.data),
   speaking: (slug: string, score: number) =>
     api.post<Progress>("/progress/speaking", { slug, score }).then((r) => r.data),
   word: (slug: string, status: string) => api.post<Progress>("/progress/word", { slug, status }).then((r) => r.data),
   task: (key: string, done: boolean) => api.post<Progress>("/progress/task", { key, done }).then((r) => r.data),
-  podcastQuiz: (slug: string, score: number) =>
-    api.post<QuizResult>("/progress/podcast-quiz", { slug, score }).then((r) => r.data),
+  podcastQuiz: (slug: string, answers: number[] = []) =>
+    api.post<QuizResult>("/progress/podcast-quiz", { slug, answers }).then((r) => r.data),
+  path: async (kind: PathKind, level?: string) =>
+    (await api.get<LearningPath>(`/progress/path/${kind}`, { params: level ? { level } : {} })).data,
   time: (body: { skill: string; seconds: number; level: string }) =>
     api.post<Progress>("/progress/time", body).then((r) => r.data),
   watch: (kind: "video" | "movie", id: string) => api.post<Progress>("/progress/watch", { kind, id }).then((r) => r.data),
@@ -72,6 +75,8 @@ export const profileService = {
     (await api.patch<{ user: User }>("/profile/levels", body)).data.user,
   setActiveLevel: async (activeLevel: string) =>
     (await api.patch<{ user: User }>("/profile/active-level", { activeLevel })).data.user,
+  setReminders: async (body: { email: boolean; hour?: number }) =>
+    (await api.patch<{ user: User }>("/profile/reminders", body)).data.user,
   savePlan: async (body: { level: string; dailyMinutes: number; targetLevel: string; targetDate: string }) =>
     (await api.put<{ user: User }>("/profile/plan", body)).data.user,
 };
@@ -85,5 +90,29 @@ export const flashcardService = {
   remove: async (id: string) => (await api.delete(`/flashcards/${id}`)).data,
 };
 
-export type QuizResult = Progress & { passed?: boolean; awarded?: number; passMark?: number };
+export type QuizResult = Progress & { passed?: boolean; awarded?: number; passMark?: number; score?: number };
+
+export type PathKind = "podcast" | "grammar" | "listening" | "speaking";
+export type PathLevel = { level: string; total: number; done: number; unlocked: boolean; complete: boolean };
+export type PathItem = {
+  slug: string;
+  title?: string;
+  titleAz?: string;
+  en?: string;
+  az?: string;
+  level: string;
+  order?: number;
+  accent?: "lilac" | "mint" | "peach" | "aqua";
+  minutes?: number;
+  summary?: string;
+  summaryAz?: string;
+  publishedAt?: string;
+  createdAt?: string;
+  audioUrl?: string;
+  completed: boolean;
+  current: boolean;
+  locked: boolean;
+  percent: number;
+};
+export type LearningPath = { kind: PathKind; level: string; levels: PathLevel[]; items: PathItem[] };
 export const QUIZ_PASS = 60;

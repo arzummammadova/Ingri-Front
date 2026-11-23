@@ -205,7 +205,15 @@
     "quizNext": "Növbəti sual",
     "quizFinish": "Bitir",
     "quizDone": "{total} sualdan {correct} düzgün!",
-    "quizRetry": "Yenidən yoxla"
+    "quizRetry": "Yenidən yoxla",
+    "translation": "Tərcümə",
+    "transcriptHint": "Cümləyə toxun, səs oradan başlasın",
+    "translationHint": "Azərbaycanca tərcümə",
+    "glossaryHint": "{count} yeni söz",
+    "quizSection": "Test",
+    "viewPath": "Yol",
+    "viewList": "Siyahı",
+    "example": "Nümunə"
   },
   "grammar": {
     "metaTitle": "Qrammatika",
@@ -694,5 +702,44 @@
     "wrong": "Səhv",
     "correctAnswer": "Düzgün cavab: {answer}",
     "start": "Quizə keç"
+  },
+  "path": {
+    "title": "Öyrənmə yolu",
+    "unit": "{level} səviyyəsi",
+    "progress": "{done} / {total} tamamlandı",
+    "start": "BAŞLA",
+    "continue": "Davam et",
+    "locked": "Bağlıdır",
+    "lockedPrev": "Əvvəlcə “{title}” dərsini bitir.",
+    "lockedLevel": "{level} səviyyəsi bağlıdır. Əvvəlki səviyyənin bütün dərslərini bitir.",
+    "lockedTitle": "Bu dərs hələ bağlıdır",
+    "lockedText": "Dərslər ardıcıl açılır: əvvəlki dərsi bitirəndə bu açılacaq.",
+    "goPrev": "Əvvəlki dərsə keç",
+    "backToPath": "Yola qayıt",
+    "chest": "Hədiyyə sandığı",
+    "chestOpen": "Sandıq açıldı! Əla iş 🎉",
+    "chestClosed": "{n} dərs də bitir, sandıq açılsın",
+    "levelDone": "{level} tamamlandı! Növbəti səviyyə açıldı.",
+    "levelLocked": "Bağlı səviyyə",
+    "empty": "Bu səviyyədə hələ dərs yoxdur.",
+    "nextUp": "Növbəti dərs",
+    "allDone": "Bu səviyyənin hamısını bitirdin!",
+    "mascot": "Hər gün bir addım!",
+    "completed": "Tamamlandı",
+    "new": "Yeni"
+  },
+  "reminders": {
+    "title": "Gündəlik xatırlatma istəyirsən?",
+    "text": "Hər gün e-poçtuna qısa xatırlatma göndərək ki, ardıcıllığın qırılmasın. İstədiyin vaxt söndürə bilərsən.",
+    "yes": "Bəli, e-poçtla xatırlat",
+    "no": "Xeyr, sağ ol",
+    "hour": "Saat",
+    "saved": "Xatırlatma qoşuldu ✉️",
+    "declined": "Yaxşı, xatırlatma göndərməyəcəyik",
+    "settingsTitle": "Gündəlik e-poçt xatırlatması",
+    "settingsText": "Həmin gün hələ dərs etməmisənsə, seçdiyin saatda (Bakı vaxtı) e-poçt göndəririk.",
+    "on": "Qoşulu",
+    "off": "Söndürülüb",
+    "verifyFirst": "Xatırlatma üçün əvvəlcə e-poçtunu təsdiqlə."
   }
 }

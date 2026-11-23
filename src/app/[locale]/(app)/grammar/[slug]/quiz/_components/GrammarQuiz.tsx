@@ -8,6 +8,7 @@ import { Link } from "@/i18n/navigation";
 import { contentService, progressService } from "@/services/contentService";
 import { Button } from "@/components/ui/button";
 import QueryState from "@/ui/components/QueryState";
+import LockedNotice from "@/ui/components/LockedNotice";
 import { routes } from "@/config/routes";
 import { useTrackItem } from "@/hooks/useCompletion";
 import ItemProgress from "@/ui/components/ItemProgress";
@@ -20,21 +21,23 @@ export default function GrammarQuiz({ slug }: { slug: string }) {
   const query = useQuery({ queryKey: ["grammar", slug], queryFn: () => contentService.grammarOne(slug) });
   const client = useQueryClient();
   const save = useMutation({
-    mutationFn: (score: number) => progressService.quiz(slug, score),
-    onSuccess: () => client.invalidateQueries({ queryKey: ["progress"] }),
+    mutationFn: (answers: number[]) => progressService.quiz(slug, answers),
+    onSuccess: () => { client.invalidateQueries({ queryKey: ["progress"] }); client.invalidateQueries({ queryKey: ["grammar"] }); client.invalidateQueries({ queryKey: ["me"] }); },
   });
   const [step, setStep] = useState(0);
   const [picked, setPicked] = useState<number | null>(null);
   const [correct, setCorrect] = useState(0);
   const [done, setDone] = useState(false);
+  const [answers, setAnswers] = useState<number[]>([]);
   const item = query.data;
   const track = useTrackItem("grammar", item?.slug || slug, item?.level, item?.title);
-  const question = item?.quiz[step];
+  const question = item?.quiz?.[step];
   useExitGuard(!done && (step > 0 || picked !== null));
 
   function choose(option: number) {
     if (!question || picked !== null) return;
     setPicked(option);
+    setAnswers((prev) => { const next = [...prev]; next[step] = option; return next; });
     if (option === question.answer) setCorrect((value) => value + 1);
     playSound(option === question.answer ? "correct" : "wrong");
   }
@@ -45,14 +48,15 @@ export default function GrammarQuiz({ slug }: { slug: string }) {
     if (step + 1 >= item.quiz.length) {
       const score = Math.round((correct / item.quiz.length) * 100);
       setDone(true);
-      save.mutate(score);
-    if (score >= 70) track.complete();
+      save.mutate(item.quiz.map((_, i) => answers[i] ?? -1));
+      if (score >= 70) track.complete();
       return;
     }
     setStep((value) => value + 1);
     setPicked(null);
   }
 
+  if (item?.locked) return <LockedNotice lock={item.lock} base={routes.grammar} title={item.title} />;
   return (
     <QueryState isLoading={query.isLoading} isError={query.isError} onRetry={() => query.refetch()}>
       {item && (
@@ -63,7 +67,7 @@ export default function GrammarQuiz({ slug }: { slug: string }) {
           {done ? (
             <div className="glass rounded-xl p-6">
               <p className="text-2xl font-bold">{t("result", { score: Math.round((correct / item.quiz.length) * 100) })}</p>
-              <Button className="mt-4" onClick={() => { setDone(false); setStep(0); setCorrect(0); setPicked(null); }}>{t("again")}</Button>
+              <Button className="mt-4" onClick={() => { setDone(false); setStep(0); setCorrect(0); setPicked(null); setAnswers([]); }}>{t("again")}</Button>
             </div>
           ) : question && (
             <div className="glass rounded-xl p-6">

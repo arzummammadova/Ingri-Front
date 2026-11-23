@@ -1,5 +1,10 @@
 "use client";
 
+import { useEffect, useState, type ReactNode } from "react";
+import { List, Route } from "lucide-react";
+import { SectionTitle } from "@/ui/components/primitives";
+import PodcastPath from "./PodcastPath";
+
 import { useLocale, useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import { useProgress } from "@/hooks/useProgress";
@@ -15,6 +20,42 @@ const bubble = { lilac: "bg-lilac", mint: "bg-mint", peach: "bg-peach", aqua: "b
 
 export default function PodcastList() {
   const t = useTranslations("podcasts");
+  const [view, setView] = useState<"path" | "list">("path");
+  useEffect(() => {
+    const saved = window.localStorage.getItem("ingri:podcasts-view");
+    if (saved === "list" || saved === "path") setView(saved);
+  }, []);
+  const pick = (next: "path" | "list") => {
+    setView(next);
+    window.localStorage.setItem("ingri:podcasts-view", next);
+  };
+  const toggle = (
+    <div role="tablist" aria-label={t("title")} className="flex rounded-full border border-border bg-card p-1">
+      {(["path", "list"] as const).map((key) => (
+        <button key={key} type="button" role="tab" aria-selected={view === key} onClick={() => pick(key)}
+          className={`inline-flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-sm font-semibold ${view === key ? "bg-primary text-primary-foreground" : ""}`}>
+          {key === "path" ? <Route className="size-4" /> : <List className="size-4" />}
+          {key === "path" ? t("viewPath") : t("viewList")}
+        </button>
+      ))}
+    </div>
+  );
+  if (view === "path") {
+    return (
+      <div className="grid gap-4">
+        <div className="flex flex-wrap items-end justify-between gap-3">
+          <SectionTitle title={t("title")} text={t("text")} />
+          {toggle}
+        </div>
+        <PodcastPath />
+      </div>
+    );
+  }
+  return <PodcastCatalog toggle={toggle} />;
+}
+
+function PodcastCatalog({ toggle }: { toggle: ReactNode }) {
+  const t = useTranslations("podcasts");
   const d = useTranslations("datatable");
   const progress = useProgress();
   const locale = useLocale();
@@ -25,8 +66,8 @@ export default function PodcastList() {
       queryKey="podcasts"
       title={t("title")}
       text={t("text")}
-      defaultSort="newest"
-      levelDefault="all"
+      defaultSort="order"
+      headerExtra={toggle}
       hrefFor={(item) => `${routes.podcasts}/${item.slug}`}
       sortOptions={[{ value: "newest", label: d("newest") }, { value: "order", label: d("recommended") }, { value: "title", label: d("col.title") }, { value: "level", label: d("level") }, { value: "minutes", label: d("col.minutes") }]}
       columns={[

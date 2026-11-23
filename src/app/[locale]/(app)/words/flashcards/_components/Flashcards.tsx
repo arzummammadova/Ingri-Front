@@ -1,11 +1,12 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useExitGuard } from "@/ui/components/ExitGuard";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useTranslations } from "next-intl";
 import { Check, Volume2, X } from "lucide-react";
 import { contentService, flashcardService, progressService } from "@/services/contentService";
+import { useAuth } from "@/hooks/useAuth";
 import { useProgress } from "@/hooks/useProgress";
 import { Button } from "@/components/ui/button";
 import QueryState from "@/ui/components/QueryState";
@@ -44,8 +45,14 @@ export default function Flashcards() {
     return map;
   }, [words.data, mine.data, progress.data]);
 
-  const [deck, setDeck] = useState<DeckType>("all");
+  const { user } = useAuth();
+  // Default deck = the learner's own level (A2 learner → A2 words); they can still switch to all levels.
+  const [deck, setDeck] = useState<DeckType>("level");
   const [level, setLevel] = useState("");
+  const levelTouched = useRef(false);
+  useEffect(() => {
+    if (!levelTouched.current && user?.activeLevel) setLevel(user.activeLevel);
+  }, [user?.activeLevel]);
   const [category, setCategory] = useState("");
   const [count, setCount] = useState(20);
   const [custom, setCustom] = useState("");
@@ -163,7 +170,7 @@ export default function Flashcards() {
                 ))}
               </div>
               {deck === "level" && (
-                <select aria-label={f("level")} className={selectCls} value={level} onChange={(e) => setLevel(e.target.value)}>
+                <select aria-label={f("level")} className={selectCls} value={level} onChange={(e) => { levelTouched.current = true; setLevel(e.target.value); }}>
                   <option value="">{f("level")}: —</option>
                   {levels.map((l) => <option key={l} value={l}>{l}</option>)}
                 </select>

@@ -205,7 +205,15 @@
     "quizNext": "Next question",
     "quizFinish": "Finish",
     "quizDone": "{correct} of {total} correct!",
-    "quizRetry": "Try again"
+    "quizRetry": "Try again",
+    "translation": "Translation",
+    "transcriptHint": "Tap a sentence to play from there",
+    "translationHint": "Azerbaijani translation",
+    "glossaryHint": "{count} new words",
+    "quizSection": "Quiz",
+    "viewPath": "Path",
+    "viewList": "List",
+    "example": "Example"
   },
   "grammar": {
     "metaTitle": "Grammar",
@@ -694,5 +702,44 @@
     "wrong": "Wrong",
     "correctAnswer": "Correct answer: {answer}",
     "start": "Go to quiz"
+  },
+  "path": {
+    "title": "Learning path",
+    "unit": "Level {level}",
+    "progress": "{done} / {total} completed",
+    "start": "START",
+    "continue": "Continue",
+    "locked": "Locked",
+    "lockedPrev": "Finish “{title}” first.",
+    "lockedLevel": "Level {level} is locked. Finish every lesson of the previous level first.",
+    "lockedTitle": "This lesson is still locked",
+    "lockedText": "Lessons open one by one: finish the previous one to unlock this.",
+    "goPrev": "Go to the previous lesson",
+    "backToPath": "Back to the path",
+    "chest": "Reward chest",
+    "chestOpen": "Chest opened! Great job 🎉",
+    "chestClosed": "Finish {n} more to open the chest",
+    "levelDone": "{level} complete! The next level is open.",
+    "levelLocked": "Locked level",
+    "empty": "No lessons at this level yet.",
+    "nextUp": "Up next",
+    "allDone": "You finished this whole level!",
+    "mascot": "One step every day!",
+    "completed": "Completed",
+    "new": "New"
+  },
+  "reminders": {
+    "title": "Want a daily reminder?",
+    "text": "We'll send a short email every day so you keep your streak. You can turn it off any time.",
+    "yes": "Yes, remind me by email",
+    "no": "No, thanks",
+    "hour": "Time",
+    "saved": "Reminder turned on ✉️",
+    "declined": "OK, no reminders",
+    "settingsTitle": "Daily email reminder",
+    "settingsText": "If you haven't studied yet that day, we email you at the chosen hour (Baku time).",
+    "on": "On",
+    "off": "Off",
+    "verifyFirst": "Verify your email first to get reminders."
   }
 }

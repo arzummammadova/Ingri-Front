@@ -7,7 +7,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { chatService, type ChatMessage } from "@/services/chatService";
 import { useAuth } from "@/hooks/useAuth";
 import { Markdown } from "@/lib/markdown";
-import { avatarSrc, cn } from "@/lib/utils";
+import { avatarSrc, cn, copyText } from "@/lib/utils";
 import { playSound, SOUND_EVENT } from "@/lib/sound";
 
 type Msg = ChatMessage & { at?: number };
@@ -20,7 +20,7 @@ function CopyButton({ text }: { text: string }) {
       type="button"
       aria-label={t("copy")}
       title={t("copy")}
-      onClick={() => navigator.clipboard?.writeText(text).then(() => { setDone(true); setTimeout(() => setDone(false), 1500); })}
+      onClick={() => copyText(text).then((ok) => { if (ok) { setDone(true); setTimeout(() => setDone(false), 1500); } })}
       className="rounded-md p-1 text-muted-foreground transition hover:bg-muted hover:text-foreground"
     >
       {done ? <Check className="size-3.5" /> : <Copy className="size-3.5" />}

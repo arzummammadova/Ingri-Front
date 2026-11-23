@@ -37,6 +37,7 @@ import { Tooltip } from "@/ui/components/Popover";
 import { useSidebar } from "@/hooks/useSidebar";
 import PreferencesSync from "@/ui/components/PreferencesSync";
 import SoundBridge from "@/ui/components/SoundBridge";
+import ReminderPrompt from "@/ui/components/ReminderPrompt";
 import LanguageSwitcher from "@/ui/components/LanguageSwitcher";
 import ThemeToggle from "@/ui/components/ThemeToggle";
 import { ExitGuardHost } from "@/ui/components/ExitGuard";
@@ -131,6 +132,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
       <PreferencesSync />
       <SoundBridge />
       <ExitGuardHost />
+      <ReminderPrompt />
       <aside
         data-collapsed={collapsed || undefined}
         className="ingri-sidebar fixed inset-y-4 left-4 z-header hidden flex-col overflow-y-auto overflow-x-hidden rounded-xl bg-sidebar p-3 text-sidebar-foreground shadow-soft lg:flex"

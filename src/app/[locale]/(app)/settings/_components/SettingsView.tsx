@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { SectionTitle } from "@/ui/components/primitives";
 import Select from "@/ui/components/Select";
 import AppearanceSection from "./AppearanceSection";
+import ReminderSection from "./ReminderSection";
 
 export default function SettingsView() {
   const t = useTranslations("settings");
@@ -60,6 +61,7 @@ export default function SettingsView() {
         <Select ariaLabel={t("active")} value={levels.includes(active) ? active : levels[0]} onChange={(value) => setActive(value)} options={levels.map((level) => ({ value: level, label: level }))} className="w-full sm:w-60" />
       </label>
       <Button onClick={() => save.mutate()} disabled={save.isPending}>{t("save")}</Button>
+      <ReminderSection />
       <AppearanceSection />
     </div>
   );

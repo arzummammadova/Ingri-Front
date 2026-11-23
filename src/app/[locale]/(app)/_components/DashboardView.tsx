@@ -8,7 +8,8 @@ import { Link } from "@/i18n/navigation";
 import { contentService } from "@/services/contentService";
 import { progressService } from "@/services/contentService";
 import { useProgress } from "@/hooks/useProgress";
-import { avatarSrc, formatClock, formatMinutes } from "@/lib/utils";
+import { avatarSrc, copyText, formatClock, formatMinutes } from "@/lib/utils";
+import { playSound } from "@/lib/sound";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { PersonAvatar, StatTile } from "@/ui/components/primitives";
@@ -137,8 +138,7 @@ export default function DashboardView() {
               variant="outline"
               className="mt-4 border-transparent bg-white text-ink shadow-sm hover:bg-white/80 dark:bg-white dark:text-ink dark:hover:bg-white/85"
               onClick={async () => {
-                await navigator.clipboard.writeText(`${window.location.origin}/${locale}${routes.register}`);
-                setCopied(true);
+                if (await copyText(`${window.location.origin}/${locale}${routes.register}`)) { setCopied(true); playSound("saved"); }
               }}
             >
               <Copy className="size-4" /> {copied ? common("copied") : common("copy")}

@@ -8,6 +8,7 @@ import { contentService, progressService } from "@/services/contentService";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import QueryState from "@/ui/components/QueryState";
+import LockedNotice from "@/ui/components/LockedNotice";
 import { createRecognizer, speak } from "@/lib/speech";
 import { scorePhrase } from "@/lib/utils";
 import { routes } from "@/config/routes";
@@ -23,7 +24,7 @@ export default function SpeakingPractice({ slug }: { slug: string }) {
   const client = useQueryClient();
   const save = useMutation({
     mutationFn: (score: number) => progressService.speaking(slug, score),
-    onSuccess: () => client.invalidateQueries({ queryKey: ["progress"] }),
+    onSuccess: () => { client.invalidateQueries({ queryKey: ["progress"] }); client.invalidateQueries({ queryKey: ["speaking"] }); client.invalidateQueries({ queryKey: ["me"] }); },
   });
   const [heard, setHeard] = useState("");
   const [typed, setTyped] = useState("");
@@ -65,6 +66,7 @@ export default function SpeakingPractice({ slug }: { slug: string }) {
     }
   }
 
+  if (item?.locked) return <LockedNotice lock={item.lock} base={routes.speaking} title={item.en} />;
   return (
     <QueryState isLoading={query.isLoading} isError={query.isError} onRetry={() => query.refetch()}>
       {item && (

@@ -5,6 +5,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Link } from "@/i18n/navigation";
 import { contentService } from "@/services/contentService";
 import QueryState from "@/ui/components/QueryState";
+import LockedNotice from "@/ui/components/LockedNotice";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { routes } from "@/config/routes";
@@ -17,6 +18,7 @@ export default function GrammarLesson({ slug }: { slug: string }) {
   const query = useQuery({ queryKey: ["grammar", slug], queryFn: () => contentService.grammarOne(slug) });
   const item = query.data;
   const az = locale === "az";
+  if (item?.locked) return <LockedNotice lock={item.lock} base={routes.grammar} title={item.title} />;
   return (
     <QueryState isLoading={query.isLoading} isError={query.isError} onRetry={() => query.refetch()}>
       {item && (

@@ -7,6 +7,7 @@ import { Link } from "@/i18n/navigation";
 import { QUIZ_PASS, contentService, progressService } from "@/services/contentService";
 import { Button } from "@/components/ui/button";
 import QueryState from "@/ui/components/QueryState";
+import LockedNotice from "@/ui/components/LockedNotice";
 import { speak, stopSpeech } from "@/lib/speech";
 import { routes } from "@/config/routes";
 import { CELEBRATE_EVENT } from "@/hooks/useCompletion";
@@ -20,10 +21,11 @@ export default function ListeningExercise({ slug }: { slug: string }) {
   const query = useQuery({ queryKey: ["listening", slug], queryFn: () => contentService.listeningOne(slug) });
   const client = useQueryClient();
   const save = useMutation({
-    mutationFn: (score: number) => progressService.listening(slug, score),
-    onSuccess: (data, score) => {
+    mutationFn: (sent: number[]) => progressService.listening(slug, sent),
+    onSuccess: (data) => {
       client.setQueryData(["progress"], data);
-      setResult({ passed: data.passed ?? score >= QUIZ_PASS, awarded: data.awarded || 0 });
+      client.invalidateQueries({ queryKey: ["listening"] });
+      setResult({ passed: data.passed ?? (data.score ?? 0) >= QUIZ_PASS, awarded: data.awarded || 0 });
       if (data.awarded) { client.invalidateQueries({ queryKey: ["me"] }); window.dispatchEvent(new CustomEvent(CELEBRATE_EVENT, { detail: { kind: "listening", slug, title: query.data?.title } })); }
     },
   });
@@ -59,9 +61,10 @@ export default function ListeningExercise({ slug }: { slug: string }) {
     playSound(next >= QUIZ_PASS ? "correct" : "wrong");
     setShowText(true);
     setResult(null);
-    save.mutate(next);
+    save.mutate(item.questions.map((_, index) => answers[index] ?? -1));
   }
 
+  if (item?.locked) return <LockedNotice lock={item.lock} base={routes.listening} title={item.title} />;
   return (
     <QueryState isLoading={query.isLoading} isError={query.isError} onRetry={() => query.refetch()}>
       {item && (

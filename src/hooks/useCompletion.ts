@@ -9,6 +9,8 @@ import { YT_EVENT, type YtProgress } from "@/lib/youtube";
 import type { ItemKind } from "@/types";
 
 export const CELEBRATE_EVENT = "ingri:completed";
+/** ContentList query keys per item kind (to refresh lock state after a completion). */
+const LIST_KEYS: Partial<Record<ItemKind, string>> = { podcast: "podcasts", video: "videos", movie: "movies", book: "books" };
 
 export function useItemProgress(kind: ItemKind, slug: string) {
   const progress = useProgress();
@@ -34,7 +36,13 @@ export function useTrackItem(kind: ItemKind, slug: string | undefined, level?: s
       const { justCompleted, ...rest } = data;
       client.setQueryData(["progress"], rest);
       client.invalidateQueries({ queryKey: ["progress"] });
-      if (justCompleted) window.dispatchEvent(new CustomEvent(CELEBRATE_EVENT, { detail: { kind, slug, title } }));
+      if (justCompleted) {
+        window.dispatchEvent(new CustomEvent(CELEBRATE_EVENT, { detail: { kind, slug, title } }));
+        // the next lesson in the path may have just opened
+        client.invalidateQueries({ queryKey: ["path"] });
+        client.invalidateQueries({ queryKey: [LIST_KEYS[kind] || kind] });
+        client.invalidateQueries({ queryKey: ["me"] });
+      }
     },
   });
   const { mutate } = mutation;

@@ -22,7 +22,6 @@ export default function ListeningList() {
       title={t("title")}
       text={t("text")}
       defaultSort="newest"
-      levelDefault="all"
       hrefFor={(item) => `${routes.listening}/${item.slug}`}
       sortOptions={[{ value: "newest", label: d("newest") }, { value: "order", label: d("recommended") }, { value: "title", label: d("col.title") }, { value: "level", label: d("level") }, { value: "minutes", label: d("col.minutes") }]}
       columns={[

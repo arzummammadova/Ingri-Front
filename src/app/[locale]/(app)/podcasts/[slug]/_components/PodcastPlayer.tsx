@@ -3,7 +3,9 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useTranslations } from "next-intl";
-import { Headphones, Pause, Play, RotateCcw, FileText } from "lucide-react";
+import { ChevronDown, FileText, Headphones, Languages, BookMarked, ListChecks, Pause, Play, RotateCcw } from "lucide-react";
+import type { ReactNode } from "react";
+import LockedNotice from "@/ui/components/LockedNotice";
 import { Link } from "@/i18n/navigation";
 import { QUIZ_PASS, contentService, progressService } from "@/services/contentService";
 import { Button } from "@/components/ui/button";
@@ -13,11 +15,29 @@ import { speak, stopSpeech } from "@/lib/speech";
 import { useStudyTimer } from "@/hooks/useStudyTimer";
 import { formatClock } from "@/lib/utils";
 import { routes } from "@/config/routes";
-import { CELEBRATE_EVENT, useReachedEnd, useTrackItem } from "@/hooks/useCompletion";
+import { CELEBRATE_EVENT, useTrackItem } from "@/hooks/useCompletion";
 import ItemProgress from "@/ui/components/ItemProgress";
 import { playSound } from "@/lib/sound";
 
 const SPEEDS = [0.75, 1, 1.25];
+
+/** Collapsible section under the player (transcript, translation, vocabulary, quiz). */
+function Section({ icon, title, hint, children, open, onToggle, id }: { icon: ReactNode; title: string; hint?: string; children: ReactNode; open: boolean; onToggle: (open: boolean) => void; id: string }) {
+  return (
+    <section className="glass overflow-hidden rounded-xl">
+      <button type="button" aria-expanded={open} aria-controls={id} onClick={() => onToggle(!open)}
+        className="flex w-full items-center gap-3 px-5 py-4 text-left transition-colors hover:bg-muted/40">
+        <span className="grid size-9 shrink-0 place-items-center rounded-full bg-muted">{icon}</span>
+        <span className="min-w-0 flex-1">
+          <span className="block font-semibold">{title}</span>
+          {hint && <span className="block text-xs text-muted-foreground">{hint}</span>}
+        </span>
+        <ChevronDown className={`size-5 shrink-0 transition-transform duration-200 ${open ? "rotate-180" : ""}`} />
+      </button>
+      <div id={id} hidden={!open} className="px-5 pb-5">{children}</div>
+    </section>
+  );
+}
 
 export default function PodcastPlayer({ slug }: { slug: string }) {
   const t = useTranslations("podcasts");
@@ -39,6 +59,9 @@ export default function PodcastPlayer({ slug }: { slug: string }) {
   const [quizDone, setQuizDone] = useState(false);
   const [result, setResult] = useState<null | { score: number; passed: boolean; awarded: number }>(null);
   const [promptQuiz, setPromptQuiz] = useState(false);
+  const [answers, setAnswers] = useState<number[]>([]);
+  const [open, setOpen] = useState<Record<string, boolean>>({});
+  const toggleSection = (key: string) => (value: boolean) => setOpen((prev) => ({ ...prev, [key]: value }));
   const quizRef = useRef<HTMLElement>(null);
   const qz = useTranslations("quiz");
   const audioRef = useRef<HTMLAudioElement>(null);
@@ -51,12 +74,21 @@ export default function PodcastPlayer({ slug }: { slug: string }) {
   const track = useTrackItem("podcast", item?.slug, item?.level, item?.title);
   // Reaching the end never completes a podcast — it only prompts the quiz.
   const noQuiz = !!item && !(item.quiz?.length);
+  const afterComplete = useCallback((data: import("@/services/contentService").QuizResult) => {
+    client.setQueryData(["progress"], data);
+    client.invalidateQueries({ queryKey: ["path"] });
+    client.invalidateQueries({ queryKey: ["podcasts"] });
+    if (data.awarded) { client.invalidateQueries({ queryKey: ["me"] }); window.dispatchEvent(new CustomEvent(CELEBRATE_EVENT, { detail: { kind: "podcast", slug, title: item?.title } })); }
+  }, [client, slug, item?.title]);
+  /** Called after the listen was saved: a podcast without a quiz completes now (the server checks the listen). */
   const askQuiz = useCallback(() => {
     setPromptQuiz(true);
-    // Podcasts without a quiz complete on reaching the end (server accepts it as a 100% check).
-    if (noQuiz) progressService.podcastQuiz(slug, 100).then((data) => client.setQueryData(["progress"], data)).catch(() => undefined);
-  }, [noQuiz, slug, client]);
-  const endRef = useReachedEnd(askQuiz, !!item && hasTranscript);
+    setOpen((prev) => ({ ...prev, quiz: true }));
+    if (noQuiz) progressService.podcastQuiz(slug).then(afterComplete).catch(() => undefined);
+  }, [noQuiz, slug, afterComplete]);
+  const finishListening = useCallback((seconds: number) => {
+    save.mutateAsync({ seconds, completed: true }).catch(() => undefined).finally(askQuiz);
+  }, [save, askQuiz]);
   const ttsTotal = (sentences.length || 1) * 8;
   const left = audioUrl ? Math.max((duration || (item?.minutes ?? 0) * 60) - time, 0) : Math.max(ttsTotal - index * 8, 0);
   const quiz = item?.quiz ?? [];
@@ -77,7 +109,12 @@ export default function PodcastPlayer({ slug }: { slug: string }) {
     if (!audio || !audio.duration) return;
     setTime(audio.currentTime);
     const ratio = audio.currentTime / audio.duration;
-    if (hasTranscript) setIndex(Math.min(sentences.length - 1, Math.floor(ratio * sentences.length)));
+    if (hasTranscript) {
+      const timed = sentences[0]?.end != null;
+      const at = audio.currentTime;
+      const hit = timed ? sentences.findIndex((line) => at >= (line.start ?? 0) && at < (line.end ?? 0) + 0.4) : -1;
+      setIndex(hit >= 0 ? hit : timed ? index : Math.min(sentences.length - 1, Math.floor(ratio * sentences.length)));
+    }
     if (audio.currentTime - lastSave.current > 15) {
       lastSave.current = audio.currentTime;
       track.report(ratio * 100);
@@ -86,9 +123,8 @@ export default function PodcastPlayer({ slug }: { slug: string }) {
   }
   function onEnded() {
     setPlaying(false);
-    save.mutate({ seconds: Math.round(audioRef.current?.duration || 0), completed: true });
     track.report(95);
-    askQuiz();
+    finishListening(Math.round(audioRef.current?.duration || 0));
     playSound("complete");
   }
   function seek(value: number) {
@@ -100,7 +136,8 @@ export default function PodcastPlayer({ slug }: { slug: string }) {
     if (audioUrl) {
       const audio = audioRef.current;
       if (audio?.duration && sentences.length) {
-        seek((lineIndex / sentences.length) * audio.duration);
+        const start = sentences[lineIndex]?.start;
+        seek(typeof start === "number" ? start : (lineIndex / sentences.length) * audio.duration);
         void audio.play().catch(() => undefined);
       }
     } else playFrom(lineIndex);
@@ -113,8 +150,7 @@ export default function PodcastPlayer({ slug }: { slug: string }) {
     const stepTo = (cursor: number) => {
       if (cursor >= sentences.length) {
         setPlaying(false);
-        save.mutate({ seconds: ttsTotal, completed: true });
-        askQuiz();
+        finishListening(ttsTotal);
         playSound("complete");
         return;
       }
@@ -138,6 +174,7 @@ export default function PodcastPlayer({ slug }: { slug: string }) {
   function choose(option: number) {
     if (!question || picked !== null) return;
     setPicked(option);
+    setAnswers((prev) => { const next = [...prev]; next[step] = option; return next; });
     const ok = option === question.answer;
     if (ok) setCorrect((value) => value + 1);
     playSound(ok ? "correct" : "wrong");
@@ -150,17 +187,19 @@ export default function PodcastPlayer({ slug }: { slug: string }) {
       const passed = score >= QUIZ_PASS;
       setResult({ score, passed, awarded: 0 });
       playSound(passed ? "complete" : "wrong");
-      progressService.podcastQuiz(slug, score).then((data) => {
-        client.setQueryData(["progress"], data);
-        setResult({ score, passed: data.passed ?? passed, awarded: data.awarded || 0 });
-        if (data.awarded) { client.invalidateQueries({ queryKey: ["me"] }); window.dispatchEvent(new CustomEvent(CELEBRATE_EVENT, { detail: { kind: "podcast", slug, title: item?.title } })); }
+      const sent = quiz.map((_, i) => answers[i] ?? -1);
+      progressService.podcastQuiz(slug, sent).then((data) => {
+        afterComplete(data);
+        setResult({ score: data.score ?? score, passed: data.passed ?? passed, awarded: data.awarded || 0 });
       }).catch(() => undefined);
       return;
     }
     setStep(step + 1);
     setPicked(null);
   }
-  function resetQuiz() { setStep(0); setPicked(null); setCorrect(0); setQuizDone(false); setResult(null); }
+  function resetQuiz() { setStep(0); setPicked(null); setCorrect(0); setQuizDone(false); setResult(null); setAnswers([]); }
+
+  if (item?.locked) return <LockedNotice lock={item.lock} base={routes.podcasts} title={item.title} />;
 
   return (
     <QueryState isLoading={query.isLoading} isError={query.isError} onRetry={() => query.refetch()}>
@@ -231,45 +270,57 @@ export default function PodcastPlayer({ slug }: { slug: string }) {
             )}
           </header>
 
-          <section className="glass rounded-xl p-6">
-            <h2 className="font-semibold">{t("transcript")}</h2>
-            {hasTranscript ? (
-              <ol className="mt-4 grid gap-3">
-                {sentences.map((line, lineIndex) => (
-                  <li key={`${lineIndex}-${line.en.slice(0, 24)}`}>
-                    <button type="button" onClick={() => jumpTo(lineIndex)}
-                      className={`w-full rounded-lg px-4 py-3 text-left transition-colors ${lineIndex === index && playing ? "bg-lilac text-ink" : "bg-muted hover:bg-muted/70"}`}>
-                      <p className="font-medium">{line.en}</p>
-                      <p className="text-sm opacity-80">{line.az}</p>
-                    </button>
-                  </li>
-                ))}
-              </ol>
-            ) : (
-              <div className="mt-4 flex items-start gap-3 rounded-lg bg-muted px-4 py-4 text-sm">
-                <FileText className="mt-0.5 size-5 shrink-0 text-muted-foreground" />
-                <div>
-                  <p className="font-semibold">{t("noTranscript")}</p>
-                  <p className="text-muted-foreground">{t("noTranscriptText")}</p>
-                </div>
+          {hasTranscript ? (
+            <>
+              <Section id="pc-transcript" icon={<FileText className="size-4" />} title={t("transcript")} hint={t("transcriptHint")} open={!!open.transcript} onToggle={toggleSection("transcript")}>
+                <ol className="grid gap-2">
+                  {sentences.map((line, lineIndex) => (
+                    <li key={`${lineIndex}-${line.en.slice(0, 24)}`}>
+                      <button type="button" onClick={() => jumpTo(lineIndex)}
+                        className={`w-full rounded-lg px-4 py-3 text-left transition-colors ${lineIndex === index && playing ? "bg-lilac text-ink" : "bg-muted hover:bg-muted/70"}`}>
+                        {line.speaker && <span className="mb-0.5 block text-[11px] font-bold uppercase tracking-wide opacity-60">{line.speaker}</span>}
+                        <span className="font-medium">{line.en}</span>
+                      </button>
+                    </li>
+                  ))}
+                </ol>
+              </Section>
+              {sentences.some((line) => line.az) && (
+                <Section id="pc-translation" icon={<Languages className="size-4" />} title={t("translation")} hint={t("translationHint")} open={!!open.translation} onToggle={toggleSection("translation")}>
+                  <ol className="grid gap-2">
+                    {sentences.map((line, lineIndex) => (
+                      <li key={`az-${lineIndex}`} className={`rounded-lg px-4 py-3 text-sm ${lineIndex === index && playing ? "bg-lilac text-ink" : "bg-muted"}`}>
+                        {line.speaker && <span className="mb-0.5 block text-[11px] font-bold uppercase tracking-wide opacity-60">{line.speaker}</span>}
+                        {line.az}
+                      </li>
+                    ))}
+                  </ol>
+                </Section>
+              )}
+            </>
+          ) : (
+            <div className="glass flex items-start gap-3 rounded-xl px-5 py-4 text-sm">
+              <FileText className="mt-0.5 size-5 shrink-0 text-muted-foreground" />
+              <div>
+                <p className="font-semibold">{t("noTranscript")}</p>
+                <p className="text-muted-foreground">{t("noTranscriptText")}</p>
               </div>
-            )}
-            <div ref={endRef} aria-hidden="true" className="h-px" />
-          </section>
+            </div>
+          )}
 
           {item.glossary?.length > 0 && (
-            <section className="glass rounded-xl p-6">
-              <h2 className="font-semibold">{t("glossary")}</h2>
-              <ul className="mt-4 grid gap-3 sm:grid-cols-2">
+            <Section id="pc-glossary" icon={<BookMarked className="size-4" />} title={t("glossary")} hint={t("glossaryHint", { count: item.glossary.length })} open={!!open.glossary} onToggle={toggleSection("glossary")}>
+              <ul className="grid gap-3 sm:grid-cols-2">
                 {item.glossary.map((word) => (
                   <li key={word.en} className="rounded-lg bg-peach/70 p-4 text-ink">
                     <button type="button" className="font-semibold" onClick={() => speak(word.en)}>{word.en}</button>
-                    <p className="text-sm">{word.ipa}</p>
+                    {word.ipa && <p className="text-sm opacity-80">{word.ipa}</p>}
                     <p>{word.az}</p>
+                    {word.example && <p className="mt-1 text-sm italic opacity-80">{t("example")}: {word.example}</p>}
                   </li>
                 ))}
               </ul>
-            </section>
+            </Section>
           )}
 
           {promptQuiz && quiz.length > 0 && !quizDone && (
@@ -278,12 +329,13 @@ export default function PodcastPlayer({ slug }: { slug: string }) {
                 <p className="font-semibold">{qz("prompt")}</p>
                 <p className="text-sm">{qz("promptText", { pass: QUIZ_PASS })}</p>
               </div>
-              <Button size="sm" data-sound="next" onClick={() => quizRef.current?.scrollIntoView({ behavior: "smooth", block: "start" })}>{qz("start")}</Button>
+              <Button size="sm" data-sound="next" onClick={() => { setOpen((prev) => ({ ...prev, quiz: true })); setTimeout(() => quizRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 50); }}>{qz("start")}</Button>
             </div>
           )}
 
           {question && (
-            <section ref={quizRef} className="glass scroll-mt-24 rounded-xl p-6">
+            <section ref={quizRef} className="scroll-mt-24">
+            <Section id="pc-quiz" icon={<ListChecks className="size-4" />} title={t("quizSection")} hint={qz("required", { pass: QUIZ_PASS })} open={!!open.quiz} onToggle={toggleSection("quiz")}>
               {!quizDone && step === 0 && picked === null && <p className="mb-3 text-xs text-muted-foreground">{qz("required", { pass: QUIZ_PASS })}</p>}
               {quizDone ? (
                 <div className="grid gap-3">
@@ -324,6 +376,7 @@ export default function PodcastPlayer({ slug }: { slug: string }) {
                   )}
                 </>
               )}
+            </Section>
             </section>
           )}
         </div>
